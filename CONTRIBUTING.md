@@ -66,6 +66,10 @@ cd uberman
 # Install dependencies
 go mod download
 
+# Install pre-commit hooks (recommended)
+pip install pre-commit
+pre-commit install
+
 # Build
 make build
 
@@ -73,10 +77,31 @@ make build
 make test
 ```
 
+#### Pre-Commit Hooks (Recommended)
+
+We use [pre-commit](https://pre-commit.com/) to automatically check code quality before commits:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Enable hooks for this repository
+pre-commit install
+```
+
+The hooks will automatically:
+- Format Go code with `gofmt`
+- Run `go vet` to catch common errors
+- Update `go.mod` and `go.sum` with `go mod tidy`
+- Check YAML/TOML syntax
+- Remove trailing whitespace
+
+See [docs/PRE_COMMIT_HOOKS.md](docs/PRE_COMMIT_HOOKS.md) for details.
+
 #### Code Style
 
 - Follow standard Go conventions
-- Run `go fmt` before committing
+- Code is automatically formatted by pre-commit hooks
 - Use meaningful variable and function names
 - Add comments for exported functions
 - Keep functions focused and testable
