@@ -1,4 +1,4 @@
-.PHONY: build install test test-short test-properties test-coverage test-coverage-detail test-integration test-config test-appdir test-database test-runtime test-web test-supervisor clean help release fmt lint deps install-local
+.PHONY: build install test test-short test-properties test-coverage test-coverage-detail test-integration test-config test-appdir test-database test-runtime test-web test-supervisor test-docker test-docker-properties test-docker-integration test-docker-coverage test-docker-build clean help release fmt lint deps install-local
 
 # Variables
 BINARY_NAME=uberman
@@ -92,11 +92,58 @@ test-supervisor:
 	@echo "Testing supervisor package..."
 	$(GO) test -v ./internal/supervisor
 
+# Docker-based testing targets (filesystem isolation)
+
+# Build Docker test image
+test-docker-build:
+	@echo "Building Docker test image..."
+	docker build -f Dockerfile.test -t uberman-test:latest .
+
+# Run all tests in Docker container (isolated filesystem)
+test-docker:
+	@echo "Running tests in Docker container (isolated filesystem)..."
+	@echo "Note: Requires Docker to be running"
+	docker compose -f docker-compose.test.yml run --rm test-all
+
+# Run property-based tests in Docker (high-volume filesystem isolation)
+test-docker-properties:
+	@echo "Running property-based tests in Docker container..."
+	@echo "This provides isolation for high-volume filesystem operations"
+	docker compose -f docker-compose.test.yml run --rm test-properties
+
+# Run integration tests in Docker
+test-docker-integration:
+	@echo "Running integration tests in Docker container..."
+	docker compose -f docker-compose.test.yml run --rm test-integration
+
+# Run tests with coverage in Docker
+test-docker-coverage:
+	@echo "Running tests with coverage in Docker container..."
+	@mkdir -p coverage
+	docker compose -f docker-compose.test.yml run --rm test-coverage
+	@echo "Coverage report generated in coverage/ directory"
+
+# Run specific package tests in Docker
+test-docker-appdir:
+	@echo "Testing appdir package in Docker..."
+	docker compose -f docker-compose.test.yml run --rm test-appdir
+
+test-docker-config:
+	@echo "Testing config package in Docker..."
+	docker compose -f docker-compose.test.yml run --rm test-config
+
+# Clean up Docker test resources
+clean-docker:
+	@echo "Cleaning Docker test resources..."
+	docker compose -f docker-compose.test.yml down --volumes --remove-orphans
+	docker rmi -f uberman-test:latest 2>/dev/null || true
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning..."
 	@rm -rf $(BUILD_DIR) $(DIST_DIR)
 	@rm -f coverage.out coverage.html
+	@rm -rf coverage/
 	@echo "Clean complete"
 
 # Format code
@@ -142,7 +189,7 @@ help:
 	@echo "  install-local         - Install to ~/bin (for Uberspace)"
 	@echo "  release               - Build release binaries for all platforms"
 	@echo ""
-	@echo "Testing:"
+	@echo "Testing (Native):"
 	@echo "  test                  - Run all tests"
 	@echo "  test-short            - Run unit tests only (skip integration)"
 	@echo "  test-properties       - Run property-based tests only"
@@ -155,6 +202,16 @@ help:
 	@echo "  test-runtime          - Test runtime package only"
 	@echo "  test-web              - Test web package only"
 	@echo "  test-supervisor       - Test supervisor package only"
+	@echo ""
+	@echo "Testing (Docker - Isolated Filesystem):"
+	@echo "  test-docker-build         - Build Docker test image"
+	@echo "  test-docker               - Run all tests in Docker"
+	@echo "  test-docker-properties    - Run property-based tests in Docker (recommended)"
+	@echo "  test-docker-integration   - Run integration tests in Docker"
+	@echo "  test-docker-coverage      - Run tests with coverage in Docker"
+	@echo "  test-docker-appdir        - Test appdir package in Docker"
+	@echo "  test-docker-config        - Test config package in Docker"
+	@echo "  clean-docker              - Clean Docker test resources"
 	@echo ""
 	@echo "Development:"
 	@echo "  clean                 - Remove build artifacts"

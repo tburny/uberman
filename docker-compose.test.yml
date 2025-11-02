@@ -1,0 +1,93 @@
+# Docker Compose configuration for running tests in isolation
+# Usage: docker compose -f docker-compose.test.yml up --build
+
+services:
+  # Run all tests
+  test-all:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: go test -v ./...
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      # Mount source code (read-only) for live development
+      - .:/app:ro
+      # Create anonymous volume for /tmp to isolate filesystem writes
+      - /tmp
+    tmpfs:
+      # Use tmpfs for maximum isolation and performance
+      - /workspace:mode=1777,size=1G
+
+  # Run property-based tests only (high-volume filesystem writes)
+  test-properties:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: go test -v -run Property ./...
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      - .:/app:ro
+      - /tmp
+    tmpfs:
+      - /workspace:mode=1777,size=1G
+
+  # Run integration tests with testcontainers support
+  test-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: go test -v -run Integration ./...
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      - .:/app:ro
+      - /tmp
+      # Mount Docker socket for testcontainers
+      - /var/run/docker.sock:/var/run/docker.sock
+    tmpfs:
+      - /workspace:mode=1777,size=1G
+
+  # Run tests with coverage
+  test-coverage:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: >
+      sh -c "go test -coverprofile=/tmp/coverage.out ./... &&
+             go tool cover -html=/tmp/coverage.out -o /tmp/coverage.html"
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      - .:/app:ro
+      - ./coverage:/tmp:rw
+    tmpfs:
+      - /workspace:mode=1777,size=1G
+
+  # Run specific package tests
+  test-appdir:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: go test -v ./internal/appdir
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      - .:/app:ro
+      - /tmp
+    tmpfs:
+      - /workspace:mode=1777,size=1G
+
+  test-config:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: go test -v ./internal/config
+    environment:
+      - CGO_ENABLED=0
+    volumes:
+      - .:/app:ro
+      - /tmp
+    tmpfs:
+      - /workspace:mode=1777,size=1G
