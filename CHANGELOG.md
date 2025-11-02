@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.1.0](https://github.com/tburny/uberman/compare/v1.0.0...v1.1.0) (2025-11-02)
+
+### Features
+
+* **install:** add one-line installation script ([861cfe7](https://github.com/tburny/uberman/commit/861cfe7154927e36daa7176ef1dd65a052bf642d))
+
+### Documentation
+
+* add comprehensive CI/CD setup documentation ([0896f6d](https://github.com/tburny/uberman/commit/0896f6dcc6df4166703753f64716c4264e73557c))
+
 ## 1.0.0 (2025-11-02)
 
 ### Features
