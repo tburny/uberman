@@ -14,6 +14,7 @@
 - **Reproducible Installations**: Install apps with a single command using TOML manifests
 - **Safe Upgrades**: Automatic backups before upgrades with rollback capability
 - **Convention Over Configuration**: Self-contained app directories at `~/apps/<app-name>`
+- **Lifecycle Hooks**: Customize installation, upgrades, and backups with bash scripts
 - **Multi-Language Support**: PHP, Python, Node.js, Ruby, Go applications
 - **Uberspace Integration**: Native support for `uberspace` commands, supervisord, MySQL
 - **Dry-Run Mode**: Preview changes before executing
