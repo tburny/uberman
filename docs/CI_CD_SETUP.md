@@ -5,6 +5,7 @@ This document provides an overview of the CI/CD infrastructure implemented for U
 ## Overview
 
 Uberman uses a fully automated release and build pipeline powered by:
+
 - **GitHub Actions** for CI/CD workflows
 - **semantic-release** for automated versioning
 - **Conventional Commits** for version determination
@@ -36,12 +37,14 @@ Push to main
 ### 1. Test Workflow (`.github/workflows/test.yml`)
 
 **Triggers:**
+
 - Push to `main` branch
 - Pull requests to `main`
 
 **Jobs:**
 
 **Test Job:**
+
 - Runs on Go 1.21 and 1.22
 - Executes: `go test -v -race -coverprofile=coverage.out`
 - Uploads coverage to Codecov
@@ -49,6 +52,7 @@ Push to main
 - Runs `go vet` for static analysis
 
 **Build Job:**
+
 - Cross-compiles for all supported platforms
 - Validates builds complete successfully
 - Matrix builds:
@@ -58,6 +62,7 @@ Push to main
   - FreeBSD: amd64
 
 **Lint Job:**
+
 - Runs golangci-lint with 20+ linters
 - Checks code quality and style
 - Configuration: `.golangci.yml`
@@ -65,9 +70,11 @@ Push to main
 ### 2. Release Workflow (`.github/workflows/release.yml`)
 
 **Triggers:**
+
 - Push to `main` branch (only)
 
 **Permissions Required:**
+
 ```yaml
 permissions:
   contents: write     # Create releases and tags
@@ -78,6 +85,7 @@ permissions:
 **Jobs:**
 
 **Semantic Release Job:**
+
 1. Analyzes all commits since last release
 2. Determines next version based on commit types:
    - `feat:` → Minor version bump (0.x.0)
@@ -89,6 +97,7 @@ permissions:
 6. Creates GitHub release draft
 
 **Build Job:**
+
 - Triggered only if new release is created
 - Builds binaries for 6 platform/arch combinations:
   - `uberman-linux-amd64`
@@ -102,6 +111,7 @@ permissions:
 - Uploads as workflow artifacts
 
 **Upload Assets Job:**
+
 - Downloads all build artifacts
 - Uploads binaries to GitHub release
 - Attaches checksums for verification
@@ -109,9 +119,11 @@ permissions:
 ### 3. Commitlint Workflow (`.github/workflows/commitlint.yml`)
 
 **Triggers:**
+
 - Pull requests (opened, synchronized, reopened)
 
 **Purpose:**
+
 - Validates all commit messages follow Conventional Commits
 - Prevents merging non-conforming commits
 - Ensures releases will work correctly
@@ -138,6 +150,7 @@ Semantic-release configuration defining:
 ```
 
 **Release Rules:**
+
 - `feat:` → Minor release
 - `fix:`, `perf:`, `refactor:` → Patch release
 - `docs:`, `style:`, `test:`, `chore:` → No release
@@ -146,6 +159,7 @@ Semantic-release configuration defining:
 ### `.golangci.yml`
 
 Linter configuration with 20+ enabled linters:
+
 - `errcheck`: Check error handling
 - `gosec`: Security vulnerabilities
 - `staticcheck`: Static analysis
@@ -166,6 +180,7 @@ make release
 ```
 
 **Version Embedding:**
+
 ```makefile
 VERSION=$(shell git describe --tags --always --dirty)
 LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION)"
@@ -188,11 +203,13 @@ LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION)"
 Two ways to indicate breaking changes:
 
 **Method 1: Exclamation mark**
+
 ```
 feat(api)!: change database format
 ```
 
 **Method 2: Footer**
+
 ```
 feat(api): change database format
 
@@ -223,6 +240,7 @@ Both trigger major version bump: 0.x.x → **1.0.0**
 ```
 
 **Build Flags:**
+
 - `-s`: Strip debug symbols
 - `-w`: Strip DWARF info
 - `-ldflags`: Embed version info
@@ -231,12 +249,14 @@ Both trigger major version bump: 0.x.x → **1.0.0**
 ### Checksums
 
 Each binary includes SHA256 checksum:
+
 ```
 uberman-linux-amd64.tar.gz
 uberman-linux-amd64.tar.gz.sha256
 ```
 
 **Verification:**
+
 ```bash
 sha256sum -c uberman-linux-amd64.tar.gz.sha256
 ```
@@ -246,6 +266,7 @@ sha256sum -c uberman-linux-amd64.tar.gz.sha256
 ### Automatic Release
 
 1. **Developer makes changes:**
+
    ```bash
    git add .
    git commit -m "feat(cli): add new command"
@@ -306,6 +327,7 @@ README includes status badges:
 ```
 
 These show:
+
 - Latest release version
 - Build/test status
 - Conventional Commits compliance
@@ -316,22 +338,26 @@ These show:
 ### GitHub Actions
 
 **View workflow runs:**
+
 ```
 https://github.com/tburny/uberman/actions
 ```
 
 **Check specific workflow:**
-- Test: https://github.com/tburny/uberman/actions/workflows/test.yml
-- Release: https://github.com/tburny/uberman/actions/workflows/release.yml
+
+- Test: <https://github.com/tburny/uberman/actions/workflows/test.yml>
+- Release: <https://github.com/tburny/uberman/actions/workflows/release.yml>
 
 ### Releases
 
 **View all releases:**
+
 ```
 https://github.com/tburny/uberman/releases
 ```
 
 **Latest release API:**
+
 ```bash
 curl -s https://api.github.com/repos/tburny/uberman/releases/latest
 ```
@@ -339,6 +365,7 @@ curl -s https://api.github.com/repos/tburny/uberman/releases/latest
 ### CHANGELOG
 
 **View changes:**
+
 ```
 https://github.com/tburny/uberman/blob/main/CHANGELOG.md
 ```
@@ -350,11 +377,13 @@ Updated automatically by semantic-release.
 ### Release Not Created
 
 **Possible causes:**
+
 1. No `feat:`, `fix:`, or `perf:` commits
 2. Only `docs:`, `chore:`, etc. commits
 3. Commits don't follow Conventional Commits
 
 **Solution:**
+
 ```bash
 # Check commit format
 git log --oneline --format="%s" | head -5
@@ -366,16 +395,19 @@ npx commitlint --from=HEAD~5
 ### Binary Build Failed
 
 **Check logs:**
+
 ```bash
 gh run view --log
 ```
 
 **Common issues:**
+
 - Import errors (check dependencies)
 - Platform-specific code (use build tags)
 - CGO dependencies (disable with CGO_ENABLED=0)
 
 **Test locally:**
+
 ```bash
 make release
 ```
@@ -394,6 +426,7 @@ If release fails with permission error:
 ### Token Usage
 
 Workflows use `GITHUB_TOKEN`:
+
 - Automatic authentication
 - Scoped to repository
 - Expires after workflow
@@ -402,6 +435,7 @@ Workflows use `GITHUB_TOKEN`:
 ### Binary Signing
 
 Future enhancement (planned):
+
 - GPG signing of binaries
 - Checksum signing
 - Verification instructions
@@ -431,28 +465,23 @@ Future enhancement (planned):
 ## Future Enhancements
 
 Planned improvements:
-- [ ] Docker image builds and publishing
-- [ ] Homebrew formula automation
-- [ ] Snap/Flatpak packages
-- [ ] APT/RPM repository
-- [ ] Binary signing with GPG
-- [ ] Release announcement automation
-- [ ] Performance benchmarking
-- [ ] Security scanning (Snyk, Trivy)
+
+- [ ] tbd
 
 ## Resources
 
-- **GitHub Actions Docs**: https://docs.github.com/actions
-- **semantic-release**: https://semantic-release.gitbook.io/
-- **Conventional Commits**: https://www.conventionalcommits.org/
-- **golangci-lint**: https://golangci-lint.run/
+- **GitHub Actions Docs**: <https://docs.github.com/actions>
+- **semantic-release**: <https://semantic-release.gitbook.io/>
+- **Conventional Commits**: <https://www.conventionalcommits.org/>
+- **golangci-lint**: <https://golangci-lint.run/>
 
 ## Support
 
 Issues with CI/CD:
+
 - Check workflow logs: `gh run view`
 - Review configuration files
-- Open issue: https://github.com/tburny/uberman/issues
+- Open issue: <https://github.com/tburny/uberman/issues>
 - See: [RELEASE_PROCESS.md](RELEASE_PROCESS.md)
 
 ---

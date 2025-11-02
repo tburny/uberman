@@ -19,6 +19,61 @@
 - **Uberspace Integration**: Native support for `uberspace` commands, supervisord, MySQL
 - **Dry-Run Mode**: Preview changes before executing
 - **User-Extensible**: Create custom app definitions or use pre-defined ones
+- **Requirements Engineering Agent**: AI-powered EARS requirements toolkit (see below)
+
+## Requirements Engineering Toolkit
+
+Uberman includes a comprehensive **Requirements Engineering Agent** that helps you write, analyze, and improve requirements using **EARS (Easy Approach to Requirements Syntax)** - an industry-standard notation developed at Rolls-Royce and adopted by Airbus, NASA, Bosch, and others.
+
+### Features
+
+- **EARS Format Conversion**: Transform informal descriptions into properly formatted EARS requirements
+- **Quality Analysis**: Assess requirements against INCOSE and IEEE 29148 standards
+- **Interactive Elicitation**: Guided requirements gathering through conversation
+- **Batch Processing**: Analyze multiple requirements with comprehensive reports
+- **Standards-Based**: Follows INCOSE 42-rule framework and IEEE 29148 guidelines
+
+### Quick Start
+
+**Interactive skill** (comprehensive mode):
+```
+@requirements-engineer
+
+I need help writing requirements for [your feature]
+```
+
+**Quick commands** (specific tasks):
+```bash
+/requirements-convert    # Convert informal to EARS format
+/requirements-analyze    # Analyze quality and suggest improvements
+/requirements-elicit     # Start interactive elicitation session
+/requirements-batch      # Process multiple requirements
+```
+
+### Documentation
+
+- **[EARS Guide](docs/EARS_GUIDE.md)** - Complete EARS reference with all 5 patterns
+- **[Quality Framework](docs/REQUIREMENTS_QUALITY.md)** - INCOSE/IEEE standards and scoring
+- **[Usage Guide](docs/REQUIREMENTS_ENGINEERING_AGENT.md)** - How to use the agent
+- **[Examples](docs/REQUIREMENTS_EXAMPLES.md)** - Real-world requirements across domains
+- **[Templates](templates/requirements/)** - Worksheets and checklists
+
+### Example
+
+**Input (informal)**:
+```
+Users should be able to export their data quickly
+```
+
+**Output (EARS-formatted)**:
+```
+[REQ-EXPORT-001] When a user clicks the Export Data button, the application
+shall generate a CSV file containing all user data and shall initiate download
+within 3 seconds.
+
+Pattern: Event-Driven (When)
+Quality: Clarity 5/5, Testability 5/5, Completeness 5/5
+```
 
 ## Supported Apps
 
