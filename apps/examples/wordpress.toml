@@ -1,0 +1,51 @@
+# WordPress App Manifest for Uberman
+# This manifest defines how to install and manage WordPress on Uberspace
+
+[app]
+name = "wordpress"
+type = "php"
+version = "latest"
+description = "The world's most popular open-source CMS"
+
+[runtime]
+language = "php"
+version = "8.3"
+
+[database]
+type = "mysql"
+required = true
+# Database name will be automatically generated as ${USER}_wordpress
+
+[install]
+method = "cli_tool"
+source = "wp-cli"
+command = "wp core download"
+location = "app/wordpress"
+
+[web]
+backend = "apache"
+document_root = "app/wordpress"
+
+# WordPress uses cron for scheduled tasks
+[cron]
+[[cron.jobs]]
+schedule = "*/5 * * * *"
+command = "sleep $(( 1 + RANDOM % 60 )) ; cd ~/apps/wordpress/app/wordpress && wp cron event run --path=~/apps/wordpress/app/wordpress > ~/logs/wordpress-cron.log 2>&1"
+log = "logs/wordpress-cron.log"
+
+[backup]
+include = [
+    "app/wordpress/wp-content/uploads/",
+    "app/wordpress/wp-content/themes/",
+    "app/wordpress/wp-content/plugins/",
+    "app/wordpress/wp-config.php"
+]
+exclude = [
+    "app/wordpress/wp-content/cache/",
+    "tmp/"
+]
+
+# Configuration templates
+[[templates]]
+name = "wp-config.php"
+destination = "app/wordpress/wp-config.php"

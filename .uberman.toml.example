@@ -1,0 +1,86 @@
+# Uberman Configuration File
+# Copy this file to ~/.uberman.toml and customize as needed
+
+# Global settings
+[settings]
+# Enable verbose output by default
+verbose = false
+
+# Enable dry-run mode by default (safe for testing)
+dry_run = false
+
+# Default app installation directory (relative to home)
+app_root = "apps"
+
+# Paths for app manifests (searched in order)
+manifest_paths = [
+    "./apps",
+    "./apps/custom",
+    "~/.uberman/apps"
+]
+
+# Backup settings
+[backup]
+# Default backup directory within each app
+backup_dir = "backups"
+
+# Maximum number of backups to keep per app (0 = unlimited)
+max_backups = 10
+
+# Compression format: "gzip", "bzip2", "xz"
+compression = "gzip"
+
+# Include database dumps in backups
+include_database = true
+
+# Database settings
+[database]
+# Default database type: "mysql", "postgresql"
+default_type = "mysql"
+
+# Database name prefix (uses $USER if not specified)
+# name_prefix = "myprefix"
+
+# Web backend settings
+[web]
+# Default port range for HTTP backends
+port_range_start = 8000
+port_range_end = 9000
+
+# Supervisord settings
+[supervisor]
+# Default startsecs for services
+default_startsecs = 15
+
+# Auto-restart services by default
+default_autorestart = true
+
+# Runtime settings
+[runtime]
+# Preferred PHP version
+# php_version = "8.3"
+
+# Preferred Python version
+# python_version = "3.11"
+
+# Preferred Node.js version
+# node_version = "20"
+
+# Logging
+[logging]
+# Log level: "debug", "info", "warn", "error"
+level = "info"
+
+# Log to file (in addition to stdout)
+# log_file = "~/.uberman/uberman.log"
+
+# Notifications (future feature)
+[notifications]
+# Enable notifications
+enabled = false
+
+# Notification method: "email", "webhook"
+# method = "email"
+
+# Email for notifications
+# email = "user@example.com"

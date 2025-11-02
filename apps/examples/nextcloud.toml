@@ -1,0 +1,49 @@
+# Nextcloud App Manifest for Uberman
+# This manifest defines how to install and manage Nextcloud on Uberspace
+
+[app]
+name = "nextcloud"
+type = "php"
+version = "latest"
+description = "Self-hosted file sync and sharing solution"
+
+[runtime]
+language = "php"
+version = "8.3"
+
+[database]
+type = "mysql"
+required = true
+
+[install]
+method = "download"
+source = "https://download.nextcloud.com/server/releases/latest.tar.bz2"
+location = "app"
+
+[web]
+backend = "apache"
+document_root = "app/nextcloud"
+
+# Nextcloud background jobs
+[cron]
+[[cron.jobs]]
+schedule = "*/5 * * * *"
+command = "sleep $(( 1 + RANDOM % 60 )) ; php ~/apps/nextcloud/app/nextcloud/cron.php > ~/logs/nextcloud-cron.log 2>&1"
+log = "logs/nextcloud-cron.log"
+
+[backup]
+include = [
+    "app/nextcloud/data/",
+    "app/nextcloud/config/"
+]
+exclude = [
+    "app/nextcloud/data/appdata_*/",
+    "tmp/"
+]
+
+# PHP configuration for Nextcloud
+[[php_config]]
+memory_limit = "512M"
+upload_max_filesize = "64M"
+post_max_size = "64M"
+max_execution_time = "3600"

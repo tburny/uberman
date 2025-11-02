@@ -1,0 +1,42 @@
+# <type>[optional scope]: <description>
+# |<----  Using a Maximum Of 72 Characters  ---->|
+
+# [optional body]
+# Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+# [optional footer(s)]
+# Provide links or keys to any relevant tickets, articles or other resources
+# Example: Closes #23
+
+# --- COMMIT END ---
+# Type can be:
+#    feat     (new feature)
+#    fix      (bug fix)
+#    refactor (refactoring code)
+#    style    (formatting, missing semicolons, etc; no code change)
+#    docs     (changes to documentation)
+#    test     (adding or refactoring tests; no production code change)
+#    chore    (updating build tasks, package manager configs, etc; no production code change)
+#    perf     (performance improvement)
+#    ci       (CI/CD configuration changes)
+#    build    (build system or dependency changes)
+#    revert   (revert a previous commit)
+# --------------------
+# Common scopes:
+#    config, runtime, database, web, supervisor, appdir
+#    backup, deploy, cli, manifest
+# --------------------
+# Breaking changes:
+#    Add ! after type/scope: feat(api)!: breaking change
+#    OR add footer: BREAKING CHANGE: description
+# --------------------
+# Remember to:
+#    - Use imperative mood ("add" not "added")
+#    - Don't capitalize first letter
+#    - No period at end of subject line
+#    - Separate subject from body with blank line
+#    - Use body to explain what and why vs. how
+# --------------------
+# Conventional Commits 1.0.0:
+# https://www.conventionalcommits.org/en/v1.0.0/
