@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/tburny/uberman/internal/config"
 )
 
 var (
