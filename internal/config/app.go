@@ -60,15 +60,15 @@ type WebConfig struct {
 
 // ServiceConfig defines a supervisord service
 type ServiceConfig struct {
-	Name         string            `toml:"name"`
-	Command      string            `toml:"command"`
-	Directory    string            `toml:"directory"`
-	Port         int               `toml:"port"`
-	Environment  map[string]string `toml:"environment"`
-	StartSecs    int               `toml:"startsecs"`
-	AutoRestart  bool              `toml:"autorestart"`
-	StdoutLogfile string           `toml:"stdout_logfile"`
-	StderrLogfile string           `toml:"stderr_logfile"`
+	Name          string            `toml:"name"`
+	Command       string            `toml:"command"`
+	Directory     string            `toml:"directory"`
+	Port          int               `toml:"port"`
+	Environment   map[string]string `toml:"environment"`
+	StartSecs     int               `toml:"startsecs"`
+	AutoRestart   bool              `toml:"autorestart"`
+	StdoutLogfile string            `toml:"stdout_logfile"`
+	StderrLogfile string            `toml:"stderr_logfile"`
 }
 
 // CronConfig defines scheduled tasks
