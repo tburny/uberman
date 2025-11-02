@@ -1,4 +1,4 @@
-.PHONY: build install test clean help release
+.PHONY: build install test test-short test-properties test-coverage test-coverage-detail test-integration test-config test-appdir test-database test-runtime test-web test-supervisor clean help release fmt lint deps install-local
 
 # Variables
 BINARY_NAME=uberman
@@ -27,10 +27,20 @@ install-local: build
 	@cp $(BUILD_DIR)/$(BINARY_NAME) ~/bin/
 	@echo "$(BINARY_NAME) installed to ~/bin/$(BINARY_NAME)"
 
-# Run tests
+# Run all tests
 test:
 	@echo "Running tests..."
 	$(GO) test -v ./...
+
+# Run tests in short mode (skip integration tests)
+test-short:
+	@echo "Running unit tests (short mode)..."
+	$(GO) test -short -v ./...
+
+# Run only property-based tests
+test-properties:
+	@echo "Running property-based tests..."
+	$(GO) test -v -run Property ./...
 
 # Run tests with coverage
 test-coverage:
@@ -40,10 +50,47 @@ test-coverage:
 	$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
-# Run integration tests (requires Uberspace environment)
+# Run tests with detailed coverage by package
+test-coverage-detail:
+	@echo "Running tests with detailed coverage..."
+	@echo "Package Coverage:"
+	@$(GO) test -cover ./internal/config
+	@$(GO) test -cover ./internal/appdir
+	@$(GO) test -cover ./internal/database
+	@$(GO) test -cover ./internal/runtime
+	@$(GO) test -cover ./internal/web
+	@$(GO) test -cover ./internal/supervisor
+
+# Run integration tests (requires Docker for testcontainers)
 test-integration:
 	@echo "Running integration tests..."
-	$(GO) test -tags=integration -v ./...
+	@echo "Note: Requires Docker to be running for testcontainers"
+	$(GO) test -v -run Integration ./...
+
+# Run specific package tests
+test-config:
+	@echo "Testing config package..."
+	$(GO) test -v ./internal/config
+
+test-appdir:
+	@echo "Testing appdir package..."
+	$(GO) test -v ./internal/appdir
+
+test-database:
+	@echo "Testing database package..."
+	$(GO) test -v ./internal/database
+
+test-runtime:
+	@echo "Testing runtime package..."
+	$(GO) test -v ./internal/runtime
+
+test-web:
+	@echo "Testing web package..."
+	$(GO) test -v ./internal/web
+
+test-supervisor:
+	@echo "Testing supervisor package..."
+	$(GO) test -v ./internal/supervisor
 
 # Clean build artifacts
 clean:
@@ -90,15 +137,28 @@ release:
 # Show help
 help:
 	@echo "Available targets:"
-	@echo "  build            - Build the binary"
-	@echo "  install          - Install to GOPATH/bin"
-	@echo "  install-local    - Install to ~/bin (for Uberspace)"
-	@echo "  release          - Build release binaries for all platforms"
-	@echo "  test             - Run tests"
-	@echo "  test-coverage    - Run tests with coverage report"
-	@echo "  test-integration - Run integration tests"
-	@echo "  clean            - Remove build artifacts"
-	@echo "  fmt              - Format code"
-	@echo "  lint             - Run linter"
-	@echo "  deps             - Download and tidy dependencies"
-	@echo "  help             - Show this help message"
+	@echo "  build                 - Build the binary"
+	@echo "  install               - Install to GOPATH/bin"
+	@echo "  install-local         - Install to ~/bin (for Uberspace)"
+	@echo "  release               - Build release binaries for all platforms"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test                  - Run all tests"
+	@echo "  test-short            - Run unit tests only (skip integration)"
+	@echo "  test-properties       - Run property-based tests only"
+	@echo "  test-coverage         - Run tests with coverage report"
+	@echo "  test-coverage-detail  - Show coverage by package"
+	@echo "  test-integration      - Run integration tests (requires Docker)"
+	@echo "  test-config           - Test config package only"
+	@echo "  test-appdir           - Test appdir package only"
+	@echo "  test-database         - Test database package only"
+	@echo "  test-runtime          - Test runtime package only"
+	@echo "  test-web              - Test web package only"
+	@echo "  test-supervisor       - Test supervisor package only"
+	@echo ""
+	@echo "Development:"
+	@echo "  clean                 - Remove build artifacts"
+	@echo "  fmt                   - Format code"
+	@echo "  lint                  - Run linter"
+	@echo "  deps                  - Download and tidy dependencies"
+	@echo "  help                  - Show this help message"
