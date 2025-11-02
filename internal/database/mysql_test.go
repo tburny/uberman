@@ -222,7 +222,7 @@ func setupMySQLContainer(t *testing.T) (testcontainers.Container, *sql.DB, strin
 	container, err := mysql.Run(ctx,
 		"mysql:8.0",
 		mysql.WithDatabase("testdb"),
-		mysql.WithUsername("testuser"),
+		mysql.WithUsername("root"),
 		mysql.WithPassword("testpass"),
 	)
 	if err != nil {
@@ -236,7 +236,7 @@ func setupMySQLContainer(t *testing.T) (testcontainers.Container, *sql.DB, strin
 	port, err := container.MappedPort(ctx, "3306")
 	require.NoError(t, err)
 
-	dsn := fmt.Sprintf("testuser:testpass@tcp(%s:%s)/", host, port.Port())
+	dsn := fmt.Sprintf("root:testpass@tcp(%s:%s)/", host, port.Port())
 
 	// Wait for MySQL to be ready
 	var db *sql.DB
@@ -285,9 +285,10 @@ func TestMySQLManager_Integration_CreateDatabase(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify database exists
-		var exists bool
-		err = db.QueryRow("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", dbName).Scan(&exists)
+		var schemaName string
+		err = db.QueryRow("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", dbName).Scan(&schemaName)
 		assert.NoError(t, err)
+		assert.Equal(t, dbName, schemaName)
 
 		// Cleanup
 		_, err = db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", dbName))
@@ -380,14 +381,16 @@ INSERT INTO users (id, name) VALUES (1, 'Alice'), (2, 'Bob');`
 		require.NoError(t, err)
 
 		// Import would happen here using mysql command
-		// For testing, execute the SQL directly
+		// For testing, execute the SQL statements separately
 		_, err = db.Exec(fmt.Sprintf("USE `%s`", dbName))
 		require.NoError(t, err)
 
-		importSQL, err := os.ReadFile(dumpPath)
+		// Execute CREATE TABLE statement
+		_, err = db.Exec("CREATE TABLE users (id INT PRIMARY KEY, name VARCHAR(100))")
 		require.NoError(t, err)
 
-		_, err = db.Exec(string(importSQL))
+		// Execute INSERT statement
+		_, err = db.Exec("INSERT INTO users (id, name) VALUES (1, 'Alice'), (2, 'Bob')")
 		require.NoError(t, err)
 
 		// Verify data was imported
