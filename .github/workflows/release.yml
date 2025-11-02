@@ -44,7 +44,21 @@ jobs:
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: |
+          npx semantic-release > semantic-output.txt 2>&1 || true
+          cat semantic-output.txt
+
+          # Check if a release was published
+          if grep -q "Published release" semantic-output.txt; then
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            # Extract version
+            VERSION=$(grep "Published release" semantic-output.txt | sed -E 's/.*Published release ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Release v$VERSION was published"
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+            echo "No release was published"
+          fi
 
   build:
     name: Build Binaries
