@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.3.0](https://github.com/tburny/uberman/compare/v1.2.2...v1.3.0) (2025-11-02)
+
+### Features
+
+* **dev:** add pre-commit hooks for code quality ([a275a82](https://github.com/tburny/uberman/commit/a275a82f789ca5c4d1591f114bc1e8158ae81531))
+
 ## [1.2.2](https://github.com/tburny/uberman/compare/v1.2.1...v1.2.2) (2025-11-02)
 
 ### Bug Fixes
