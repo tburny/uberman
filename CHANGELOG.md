@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## [1.2.1](https://github.com/tburny/uberman/compare/v1.2.0...v1.2.1) (2025-11-02)
+
+### Bug Fixes
+
+* **ci:** capture semantic-release outputs for build job ([4ceca7a](https://github.com/tburny/uberman/commit/4ceca7ad9a2fee437c6a240df66b75d81bf00540))
+
 ## [1.2.0](https://github.com/tburny/uberman/compare/v1.1.0...v1.2.0) (2025-11-02)
 
 ### Features
