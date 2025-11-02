@@ -2,6 +2,10 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/dl/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/tburny/uberman)](https://github.com/tburny/uberman/releases)
+[![Build Status](https://github.com/tburny/uberman/workflows/Test/badge.svg)](https://github.com/tburny/uberman/actions)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
 **Uberman** is a CLI tool for reproducible installation, upgrades, backups, and deployment of applications on [Uberspace](https://uberspace.de) hosting. It automates the manual installation patterns from [Uberspace Lab](https://lab.uberspace.de/) while following a "convention over configuration" approach.
 
@@ -27,24 +31,50 @@ Additional apps can be defined using TOML manifests.
 
 ## Installation
 
-### Prerequisites
+### Quick Install (Recommended)
 
-- Uberspace hosting account with SSH access
-- Go 1.21 or higher
-
-### On Uberspace
+Download and install the latest release binary:
 
 ```bash
-# Ensure Go is available
-uberspace tools version use go 1.21
+# On Linux (Uberspace)
+curl -L https://github.com/tburny/uberman/releases/latest/download/uberman-linux-amd64.tar.gz | tar xz
+mv uberman-linux-amd64 ~/bin/uberman
+chmod +x ~/bin/uberman
+
+# On macOS (Intel)
+curl -L https://github.com/tburny/uberman/releases/latest/download/uberman-darwin-amd64.tar.gz | tar xz
+mv uberman-darwin-amd64 ~/bin/uberman
+chmod +x ~/bin/uberman
+
+# On macOS (Apple Silicon)
+curl -L https://github.com/tburny/uberman/releases/latest/download/uberman-darwin-arm64.tar.gz | tar xz
+mv uberman-darwin-arm64 ~/bin/uberman
+chmod +x ~/bin/uberman
+
+# Verify installation
+uberman --version
+```
+
+**Available Platforms:**
+- Linux (amd64, arm64)
+- macOS (amd64/Intel, arm64/Apple Silicon)
+- Windows (amd64)
+- FreeBSD (amd64)
+
+See [Releases](https://github.com/tburny/uberman/releases) for all versions and platforms.
+
+### Build from Source
+
+```bash
+# Prerequisites: Go 1.21 or higher
+# On Uberspace: uberspace tools version use go 1.21
 
 # Clone the repository
-cd ~/projekte
 git clone https://github.com/tburny/uberman.git
 cd uberman
 
 # Build and install
-go build -o ~/bin/uberman cmd/uberman/main.go
+make install-local
 
 # Verify installation
 uberman --version
