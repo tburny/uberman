@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## 1.0.0 (2025-11-02)
+
+### Features
+
+* **ci:** add semantic-release with automated binary builds ([e03c616](https://github.com/tburny/uberman/commit/e03c61626ce29701a4cfbca6a0995506ab625714))
+* initial project foundation for uberman ([e765f51](https://github.com/tburny/uberman/commit/e765f51fc6018ccf7b2d724bb63ed6be540e8ec6))
+
+### Documentation
+
+* add setup verification guide ([ead6f5e](https://github.com/tburny/uberman/commit/ead6f5e07c25e344774b2c458724fb99e7092d56))
+
 ## [Unreleased]
 
 ### Added
