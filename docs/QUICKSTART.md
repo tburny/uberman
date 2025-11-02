@@ -10,36 +10,37 @@ This guide will help you get started with Uberman in minutes.
 
 ## Installation (On Uberspace)
 
-### Step 1: Install Go
+### Quick Install (Recommended)
+
+Install with a single command:
 
 ```bash
-# Check if Go is available
-go version
-
-# If not, install it
-uberspace tools version use go 1.21
+curl -fsSL https://raw.githubusercontent.com/tburny/uberman/main/install.sh | bash
 ```
 
-### Step 2: Clone and Build Uberman
+This automatically:
+- Detects your platform (Linux amd64 on Uberspace)
+- Downloads the latest release
+- Installs to `~/bin/uberman`
+- Verifies the installation
+
+### Alternative: Build from Source
+
+If you prefer to build from source:
 
 ```bash
-# Navigate to your projects directory
-cd ~/projekte
-mkdir -p ~/projekte
-cd ~/projekte
+# Install Go if needed
+uberspace tools version use go 1.21
 
-# Clone the repository
+# Clone and build
+cd ~/projekte
 git clone https://github.com/tburny/uberman.git
 cd uberman
-
-# Build and install
 make install-local
 
 # Verify installation
 uberman --version
 ```
-
-The `uberman` binary is now installed in `~/bin/` which is in your PATH.
 
 ## Your First App: WordPress
 

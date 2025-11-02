@@ -31,9 +31,32 @@ Additional apps can be defined using TOML manifests.
 
 ## Installation
 
-### Quick Install (Recommended)
+### One-Line Install (Recommended)
 
-Download and install the latest release binary:
+Install the latest version with a single command:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tburny/uberman/main/install.sh | bash
+```
+
+This will automatically:
+- Detect your OS and architecture
+- Download the latest release
+- Install to `~/bin/uberman`
+- Verify the installation
+
+**Custom install location:**
+```bash
+# Install to /usr/local/bin (requires sudo)
+curl -fsSL https://raw.githubusercontent.com/tburny/uberman/main/install.sh | sudo INSTALL_DIR=/usr/local/bin bash
+
+# Install to custom directory
+curl -fsSL https://raw.githubusercontent.com/tburny/uberman/main/install.sh | INSTALL_DIR=~/.local/bin bash
+```
+
+### Manual Install
+
+Download and install manually:
 
 ```bash
 # On Linux (Uberspace)
