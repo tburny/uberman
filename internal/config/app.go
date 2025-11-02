@@ -112,15 +112,19 @@ func FindManifest(appName string) (string, error) {
 	}
 
 	// Search order:
-	// 1. ~/apps/<app-name>/.uberman.toml (installed app)
-	// 2. ./apps/<app-name>.toml (project directory)
-	// 3. ./apps/custom/<app-name>.toml (user-defined)
-	// 4. ~/.uberman/apps/<app-name>.toml (user home)
+	// 1. ~/apps/<app-name>/.uberman.toml (installed app instance)
+	// 2. ./apps/examples/<app-name>/app.toml (project examples, new structure)
+	// 3. ./apps/custom/<app-name>/app.toml (user-defined, new structure)
+	// 4. ./apps/<app-name>.toml (legacy flat structure)
+	// 5. ~/.uberman/apps/<app-name>/app.toml (user home, new structure)
+	// 6. ~/.uberman/apps/<app-name>.toml (user home, legacy)
 
 	searchPaths := []string{
 		filepath.Join(homeDir, "apps", appName, ".uberman.toml"),
+		filepath.Join("apps", "examples", appName, "app.toml"),
+		filepath.Join("apps", "custom", appName, "app.toml"),
 		filepath.Join("apps", appName+".toml"),
-		filepath.Join("apps", "custom", appName+".toml"),
+		filepath.Join(homeDir, ".uberman", "apps", appName, "app.toml"),
 		filepath.Join(homeDir, ".uberman", "apps", appName+".toml"),
 	}
 
@@ -131,6 +135,30 @@ func FindManifest(appName string) (string, error) {
 	}
 
 	return "", fmt.Errorf("manifest not found for app: %s", appName)
+}
+
+// GetAppDirectory returns the directory containing the app manifest
+// This is useful for finding hook scripts and templates
+func GetAppDirectory(manifestPath string) string {
+	dir := filepath.Dir(manifestPath)
+	// If the manifest is app.toml in a directory, return that directory
+	// If it's a .toml file directly, return its parent
+	if filepath.Base(manifestPath) == "app.toml" {
+		return dir
+	}
+	return dir
+}
+
+// FindHookScript searches for a hook script for an app
+func FindHookScript(manifestPath, hookName string) (string, error) {
+	appDir := GetAppDirectory(manifestPath)
+	hookPath := filepath.Join(appDir, "hooks", hookName+".sh")
+
+	if _, err := os.Stat(hookPath); err == nil {
+		return hookPath, nil
+	}
+
+	return "", fmt.Errorf("hook script %s not found for app", hookName)
 }
 
 // Validate checks if the manifest is valid

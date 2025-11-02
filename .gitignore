@@ -29,8 +29,9 @@ vendor/
 .DS_Store
 
 # Custom app manifests (user-specific)
-apps/custom/*.toml
+apps/custom/*
 !apps/custom/.gitkeep
+!apps/custom/README.md
 
 # Logs
 *.log

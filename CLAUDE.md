@@ -155,9 +155,26 @@ All apps are installed following this structure:
 
 ### App Manifest Schema (TOML)
 
-App definitions live in `apps/` directory:
-- `apps/examples/` - Pre-defined apps (WordPress, Ghost, Nextcloud)
-- `apps/custom/` - User-created app definitions
+App definitions live in `apps/` directory with each app in its own subdirectory:
+
+```
+apps/
+├── examples/                  # Pre-defined, tested apps
+│   ├── wordpress/
+│   │   ├── app.toml          # App manifest
+│   │   └── hooks/            # Lifecycle hook scripts
+│   ├── ghost/
+│   └── nextcloud/
+└── custom/                    # User-defined apps
+    └── myapp/
+        ├── app.toml
+        └── hooks/
+```
+
+This structure allows each app to include:
+- **app.toml**: App manifest configuration
+- **hooks/**: Lifecycle hook scripts (pre-install, post-install, etc.)
+- **templates/**: Configuration file templates (optional)
 
 Manifest structure:
 ```toml
@@ -210,6 +227,42 @@ log = "logs/cron.log"
 include = ["data/", "uploads/"]
 exclude = ["cache/", "tmp/"]
 ```
+
+### Lifecycle Hooks
+
+Apps can include optional hook scripts that run at specific lifecycle events:
+
+**Available Hooks:**
+- `pre-install.sh` - Before app installation
+- `post-install.sh` - After app installation
+- `pre-upgrade.sh` - Before app upgrade
+- `post-upgrade.sh` - After app upgrade
+- `pre-backup.sh` - Before creating backup
+- `post-backup.sh` - After creating backup
+- `pre-start.sh` - Before starting service
+- `post-start.sh` - After starting service
+
+**Hook Script Format:**
+```bash
+#!/bin/bash
+set -e
+
+APP_ROOT="$1"      # ~/apps/<app-name>
+APP_NAME="$2"      # <app-name>
+ACTION="$3"        # install|upgrade|backup|start
+
+# Your hook logic here
+cd "${APP_ROOT}/app"
+npm run setup
+```
+
+Hooks must be:
+- Executable (`chmod +x`)
+- Located in `hooks/` directory
+- Named `<hook-name>.sh`
+- Handle errors appropriately
+
+See `apps/README.md` for complete hook documentation.
 
 ## Uberspace-Specific Integration
 
