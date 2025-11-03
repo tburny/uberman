@@ -1,486 +1,339 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working with this repository.
 
-## Project Overview
+## Project Context
 
-**Uberman** is a Go-based CLI tool for reproducible installation, upgrades, backups, and deployment of applications on Uberspace hosting (uberspace.de). It follows a "convention over configuration" approach where each app is installed in a self-contained directory structure at `~/apps/<app-name>`.
+**Uberman** is a Go CLI tool for reproducible app installation on Uberspace hosting (uberspace.de).
 
-### Purpose
+**Current Status**: Clean Architecture refactoring from scratch
+**MVP Scope**: `uberman install <app>` command ONLY
+**Approach**: Delete existing code, rebuild with correct bounded context
 
-Uberspace provides manual installation guides at https://lab.uberspace.de/ (GitHub: https://github.com/Uberspace/lab) that intentionally include manual steps for educational purposes. Uberman automates these installation patterns while maintaining best practices and safety.
+## Bounded Context (DDD)
 
-### Key Constraints
+**Single Context**: "App Installation" (Go directory: `appinstallation`)
 
-- **No Docker/Containers**: Uberspace does not support containerization
-- **No System Package Managers**: Cannot use apt/yum/pacman; must rely on language-specific package managers (npm, pip, composer, gem, etc.)
-- **User-Space Only**: All operations run in user context without root privileges
-- **Supervisord for Services**: Long-running processes managed via supervisord (not systemd)
-- **Database Naming**: MySQL databases must be prefixed with username: `${USER}_<appname>`
-- **Port Binding**: Applications must bind to `0.0.0.0` or `::` (NOT localhost/127.0.0.1)
+**Focus**: Model installation as workflow, not just data structures.
 
-## Commands
+**Ubiquitous Language**: See UBIQUITOUS_LANGUAGE.md
 
-### Development Setup
+**Key Concepts**:
+- **Installation**: Workflow/process aggregate (root)
+- **Manifest**: App definition aggregate
+- **Provisioning**: Infrastructure creation (directories, database, web, services)
+- **Instance**: Installed app at ~/apps/<name>
 
-**Note**: Go is required but not currently installed in the development environment. Once Go is available:
+## Architecture (Clean Architecture)
 
+### Single Bounded Context Structure
+
+```
+internal/appinstallation/
+├── domain/               # 100% pure (no os, exec, io, net)
+│   ├── workflow/         # Installation aggregate
+│   ├── manifest/         # Manifest aggregate
+│   ├── valueobjects/     # AppName, Port, DatabaseName, etc.
+│   └── ports/            # Repository interfaces
+├── application/          # Use cases (optional - can be cut)
+│   └── installapp/
+└── infrastructure/       # Adapters (filesystem, memory, dryrun)
+    ├── filesystem/
+    ├── memory/
+    └── dryrun/
+```
+
+### Dependency Rules (ENFORCE)
+
+1. **Dependencies point INWARD only**
+2. **Domain: ZERO outward dependencies**
+3. **Domain: NO imports from** os, exec, io, net, syscall
+4. **Infrastructure implements domain interfaces** (ports)
+
+**Validation**:
 ```bash
-# Prerequisites: Go 1.21+ must be installed
-# On Uberspace: uberspace tools version use go 1.21
-# On local machine: Install from https://golang.org/dl/
-
-# Install dependencies
-go mod download
-
-# Build the binary
-go build -o bin/uberman cmd/uberman/main.go
-
-# Install locally
-go install ./cmd/uberman
-
-# Run with verbose output
-uberman --verbose <command>
-
-# Dry-run mode (show what would be done)
-uberman --dry-run <command>
+go list -f '{{.ImportPath}}: {{.Imports}}' ./internal/appinstallation/domain/...
 ```
 
-### Available Commands
+Must see ZERO forbidden packages.
 
-```bash
-# Install an app from manifest
-uberman install wordpress
+### Workflow Modeling
 
-# Upgrade an app (with automatic backup)
-uberman upgrade wordpress
-
-# Create manual backup
-uberman backup wordpress
-
-# Restore from backup
-uberman restore wordpress <backup-id>
-
-# Check app health and status
-uberman status wordpress
-
-# Deploy app from git/source
-uberman deploy myapp
-
-# List installed apps
-uberman list
-
-# Create new app manifest template
-uberman init myapp
+Installation aggregate coordinates workflow via state machine:
+```
+NotStarted → ManifestLoaded → PrerequisitesValidated →
+ProvisioningInProgress → Configured → Installed
 ```
 
-### Testing
+**Commands**: LoadManifest, ValidatePrerequisites, ProvisionDatabase, etc.
+**Events**: ManifestLoaded, DatabaseProvisioned, InstallationCompleted, etc.
 
-```bash
-# Run all tests
-go test ./...
+**TBD**: Explicit state machine or simpler approach? (Decide during week 1-2)
 
-# Run tests with coverage
-go test -cover ./...
+See ARCHITECTURE.md for details.
 
-# Run tests for specific package
-go test ./internal/config/
+## Shape Up Methodology (PERMANENT)
 
-# Run integration tests (requires Uberspace environment)
-go test -tags=integration ./...
-```
+### Core Principles
 
-## Architecture
+- **Fixed time, variable scope** (NOT fixed scope, variable time)
+- **6-week cycles** (big batch) or 1-2 weeks (small batch)
+- **2-week cooldown** after each cycle
+- **Circuit breaker**: Kill projects that don't ship in one cycle
+- **No backlogs**: Ideas tracked in IDEAS.md, resurface naturally
+- **Appetite over estimates**: Set time budget first, design to fit
 
-### Directory Structure Convention
+### Current Cycle
 
-All apps are installed following this structure:
+**Status**: Draft pitch - awaiting betting table decision
+**Pitch**: plans/pitches/2025-11-03-rebuild-install-clean-architecture.md
+**Appetite**: 6 weeks (big batch)
+**Scope**: Install command only (MVP)
+**Circuit Breaker**: Ship partial or kill if not done in 6 weeks
 
-```
-~/apps/<app-name>/
-├── .uberman.toml           # App instance configuration
-├── app/                    # Application code/files
-│   ├── wordpress/         # (example: WordPress files)
-│   └── ...
-├── data/                   # Persistent application data
-├── logs/                   # Application logs (symlinked to ~/logs/)
-├── backups/                # Local backup storage
-└── tmp/                    # Temporary files (excluded from backups)
-```
+### Appetite Constraints
 
-### Core Packages
+**Small batch**: 1-2 weeks (tweaks, bug fixes, small refactoring)
+**Big batch**: 6 weeks (major features, large refactoring)
 
-#### `internal/config` - App Manifest Parser
-- Parses TOML app manifests
-- Validates configuration schema
-- Searches for manifests in multiple locations (project, user home, installed app)
-- Key types: `AppManifest`, `AppConfig`, `RuntimeConfig`, `DatabaseConfig`, `InstallConfig`, `WebConfig`, `ServiceConfig`
+**NOT an estimate** - it's a creative constraint forcing hard choices.
 
-#### `internal/runtime` - Runtime Version Management
-- Manages language runtime versions via `uberspace tools version`
-- Supports: PHP, Python, Node.js, Ruby, Go, and others
-- Key methods: `SetVersion()`, `GetVersion()`, `ListVersions()`, `RestartPHP()`
+### Scope Hammering
 
-#### `internal/database` - Database Provisioning
-- MySQL database creation and management
-- Reads credentials from `~/.my.cnf`
-- Enforces `${USER}_<appname>` naming convention
-- Key methods: `CreateDatabase()`, `DatabaseExists()`, `ExportDatabase()`, `ImportDatabase()`
+Forcefully question every feature to fit time box.
 
-#### `internal/web` - Web Backend Configuration
-- Configures Uberspace web backends via `uberspace web backend`
-- Supports Apache (for PHP) and HTTP (for application servers)
-- Finds available ports in range 1024-65535
-- Key methods: `SetBackend()`, `DeleteBackend()`, `FindAvailablePort()`
+**When**: During shaping (primary) and building (when hitting constraints)
+**How**: Must-haves vs Nice-to-haves (~), question everything
+**Goal**: Good enough > perfect
 
-#### `internal/supervisor` - Service Management
-- Generates supervisord configuration files (`~/etc/services.d/*.ini`)
-- Manages service lifecycle (start/stop/restart)
-- Key methods: `CreateService()`, `ReloadServices()`, `StartService()`, `StopService()`
+### Circuit Breaker
 
-#### `internal/backup` - Backup/Restore Logic
-- Creates compressed backups with versioning
-- Excludes cache and temporary directories
-- Integrates with Uberspace automatic backups (`/backup/`, `/mysql_backup/`)
+Hard deadline at end of cycle. No extensions by default.
 
-#### `internal/deploy` - Deployment Strategies
-- Supports git-based deployments
-- Handles dependency installation per language
-- Runs migrations and post-deploy hooks
+**Options**:
+1. **Ship what's done** (most common) - use scope hammering
+2. **Kill and reshape** - circuit breaker activates, learn from failure
+3. **Extend** (RARE) - only if all work is downhill + nearly complete
 
-#### `internal/templates` - Configuration Templates
-- Template engine for app-specific config files
-- Injects database credentials, domains, secrets
-- Generates: `wp-config.php`, `config.production.json`, `.env`, etc.
+### Hill Charts
 
-### App Manifest Schema (TOML)
+Track progress weekly: Uphill (figuring out) vs Downhill (executing known work)
 
-App definitions live in `apps/` directory with each app in its own subdirectory:
+**When to worry**: Scope stuck uphill for 2+ weeks
+
+### Betting Table
+
+Solo decision point during cooldown: review pitches, decide what to bet on next cycle.
+
+### Cycles and Cooldown
+
+**6-week cycle**: Full focus on committed work
+**2-week cooldown**: Bug fixes, exploration, shaping, betting table
+
+### Plans Directory
 
 ```
-apps/
-├── examples/                  # Pre-defined, tested apps
-│   ├── wordpress/
-│   │   ├── app.toml          # App manifest
-│   │   └── hooks/            # Lifecycle hook scripts
-│   ├── ghost/
-│   └── nextcloud/
-└── custom/                    # User-defined apps
-    └── myapp/
-        ├── app.toml
-        └── hooks/
+plans/
+├── templates/      # Pitch, hill chart, betting table templates
+├── pitches/        # Shaped work ready for betting
+├── cycles/         # Active cycle tracking with hill charts
+└── cooldown/       # Betting decisions, exploration notes
 ```
 
-This structure allows each app to include:
-- **app.toml**: App manifest configuration
-- **hooks/**: Lifecycle hook scripts (pre-install, post-install, etc.)
-- **templates/**: Configuration file templates (optional)
+See plans/README.md for Shape Up guide.
 
-Manifest structure:
-```toml
-[app]
-name = "appname"
-type = "php|python|nodejs|ruby|go|static"
-version = "latest"
-description = "App description"
+## Session Management (PERMANENT)
 
-[runtime]
-language = "php|python|node|ruby|go"
-version = "8.3"  # Language version
+### Time Boxing
 
-[database]
-type = "mysql|postgresql|mongodb|redis"
-required = true
-name = "optional_custom_name"  # Defaults to ${USER}_<appname>
+- **Maximum session**: 40 minutes
+- **Break**: 10 minutes between sessions
+- **Daily max**: 6 sessions
+- **Types**: Planning | Execution | Review
 
-[install]
-method = "download|git|cli_tool|composer|pip|npm"
-source = "URL or package name"
-command = "optional command to run"
-location = "app/"  # Relative to app root
+### Kill Criteria (Check Every Session)
 
-[web]
-backend = "apache|http"
-port = 8080  # Required for http backend
-document_root = "app/subdir"
-static_paths = ["/static", "/media"]
+Stop immediately if:
+1. Same error repeated 3x despite different approaches
+2. Core requirement misunderstood (check EARS in PRD.md)
+3. Architecture rule violated (check layer imports)
+4. Token cost exceeds $5 for single task
+5. No measurable progress in 2 consecutive sessions
 
-[[services]]  # For non-PHP apps
-name = "service-name"
-command = "gunicorn app:application"
-directory = "app/"
-port = 8080
-startsecs = 15
-autorestart = true
+### Before ANY Session
 
-[services.environment]
-NODE_ENV = "production"
-PORT = "8080"
+1. Read current story from PLANNING.md
+2. Read EARS requirements from epic
+3. Identify task to work on
+4. Check session type (Planning or Execution)
+5. Set 40-minute timer
 
-[cron]
-[[cron.jobs]]
-schedule = "*/5 * * * *"
-command = "wp cron event run"
-log = "logs/cron.log"
+### Planning Session (Read-Only Mode)
 
-[backup]
-include = ["data/", "uploads/"]
-exclude = ["cache/", "tmp/"]
+- Generate specifications only
+- NO code implementation
+- Output: Plan document
+- Requires approval before execution
+
+### Execution Session
+
+- Follow approved plan
+- One task only per session
+- TDD: Test first, then implementation
+- Update PLANNING.md with progress
+
+### End of Session
+
+- Update task status in PLANNING.md
+- Note blockers
+- Commit if complete (conventional commits)
+- Update hill chart (if in cycle)
+
+## Decision Framework (PERMANENT)
+
+### Assumption Scoring
+
+- **p < 60%**: Ask user to refine
+- **p = 60-90%**: Ask approval if high impact, apply if low impact
+- **p > 90%**: Notify user, apply automatically
+
+### Impact Assessment
+
+**Low Impact**:
+- < 20 LOC added
+- No external dependencies
+- Easily removable (single method/function)
+- No database schema changes
+- No breaking API changes
+
+**High Impact**:
+- > 50 LOC added
+- New dependencies/libraries
+- Database migrations required
+- API contract changes
+- Cross-cutting concerns (auth, logging, caching)
+
+### Cynefin Classification (for Initiatives)
+
+- **CLEAR**: Best practices exist → Sense-Categorize-Respond
+- **COMPLICATED**: Expert analysis needed → Sense-Analyze-Respond
+- **COMPLEX**: Unknown unknowns → Probe-Sense-Respond ← **Current refactoring**
+- **CHAOTIC**: Crisis → Act-Sense-Respond
+
+**Current Initiative**: Clean Architecture Refactoring = **COMPLEX**
+**Strategy**: Probe-Sense-Respond (experiment, observe, adapt)
+
+## Quality Gates (Go-Specific)
+
+Before committing:
+- [ ] All tests pass: `go test ./...`
+- [ ] No linting errors: `golangci-lint run`
+- [ ] Test coverage ≥ 75%: `go test -cover ./...`
+- [ ] Architecture rules validated (domain purity check)
+- [ ] Conventional commit format used
+
+**Test Performance Targets**:
+- Domain tests: < 1ms per test
+- Application tests: < 5ms per test
+- Integration tests: 10-20ms acceptable
+
+## Platform Constraints (Uberspace)
+
+**Critical**:
+- No Docker/containers
+- No root/system package managers
+- User-space only
+- Supervisord for services (not systemd)
+- Database naming: `${USER}_<appname>`
+- Port binding: `0.0.0.0` or `::` (NOT localhost)
+
+See UBERSPACE_INTEGRATION.md for commands and details.
+
+## Project Structure
+
+### Work Organization
+
+```
+.project/                  # If needed for additional tracking
+plans/                     # Shape Up pitches, cycles, cooldown
+├── templates/
+├── pitches/
+├── cycles/
+└── cooldown/
 ```
 
-### Lifecycle Hooks
+### Status Markers (in PLANNING.md)
 
-Apps can include optional hook scripts that run at specific lifecycle events:
+- [ ] Todo
+- [-] In Progress (currently working on this)
+- [R] Review needed
+- [x] Complete
 
-**Available Hooks:**
-- `pre-install.sh` - Before app installation
-- `post-install.sh` - After app installation
-- `pre-upgrade.sh` - Before app upgrade
-- `post-upgrade.sh` - After app upgrade
-- `pre-backup.sh` - Before creating backup
-- `post-backup.sh` - After creating backup
-- `pre-start.sh` - Before starting service
-- `post-start.sh` - After starting service
+### EARS Requirements Format
 
-**Hook Script Format:**
-```bash
-#!/bin/bash
-set -e
+All epics and stories MUST have requirements in EARS format (see PRD.md):
 
-APP_ROOT="$1"      # ~/apps/<app-name>
-APP_NAME="$2"      # <app-name>
-ACTION="$3"        # install|upgrade|backup|start
+- **Ubiquitous**: The system shall [always do X]
+- **State-Driven**: While [condition], the system shall [do X]
+- **Event-Driven**: When [event], the system shall [do X]
+- **Optional**: Where [feature enabled], the system shall [do X]
+- **Unwanted**: If [error], then the system shall [handle X]
 
-# Your hook logic here
-cd "${APP_ROOT}/app"
-npm run setup
-```
+These are specifications to implement, not suggestions.
 
-Hooks must be:
-- Executable (`chmod +x`)
-- Located in `hooks/` directory
-- Named `<hook-name>.sh`
-- Handle errors appropriately
+## References
 
-See `apps/README.md` for complete hook documentation.
+**Core Documentation**:
+- **PRD.md**: Product requirements (MVP: install command only, EARS format)
+- **PLANNING.md**: Kanban board (Initiative → Epic → Story → Task)
+- **ARCHITECTURE.md**: Detailed Clean Architecture design
+- **UBIQUITOUS_LANGUAGE.md**: Domain glossary for App Installation context
 
-## Uberspace-Specific Integration
+**Shape Up**:
+- **plans/README.md**: Shape Up methodology guide
+- **plans/pitches/**: Shaped work ready for betting
+- **plans/cycles/**: Active cycle tracking with hill charts
+- **plans/templates/**: Pitch, hill chart, betting table templates
 
-### Runtime Version Management
+**Reference**:
+- **UBERSPACE_INTEGRATION.md**: Platform-specific commands
+- **IDEAS.md**: Rough idea collection (NOT planned work)
 
-```bash
-# Managed via: uberspace tools version
-uberspace tools version use php 8.3
-uberspace tools version show php
-uberspace tools version list php
-uberspace tools restart php  # For PHP only
-```
-
-### Web Backend Configuration
-
-```bash
-# Apache backend (for PHP apps)
-uberspace web backend set / --apache
-
-# HTTP backend (for app servers)
-uberspace web backend set / --http --port 8080
-
-# Static files
-uberspace web backend set /static --apache
-
-# List configured backends
-uberspace web backend list
-```
-
-### Database Management
-
-Credentials stored in `~/.my.cnf`:
-```ini
-[client]
-user = username
-password = secret
-```
-
-Database operations:
-```bash
-# Create database (must prefix with username)
-mysql -e "CREATE DATABASE ${USER}_appname"
-
-# Export database
-mysqldump ${USER}_appname > backup.sql
-
-# Import database
-mysql ${USER}_appname < backup.sql
-```
-
-### Process Management (Supervisord)
-
-Service files in `~/etc/services.d/<service>.ini`:
-```ini
-[program:myapp]
-command=gunicorn --bind 0.0.0.0:8000 app:application
-directory=%(ENV_HOME)s/apps/myapp/app
-startsecs=15
-autorestart=true
-stdout_logfile=%(ENV_HOME)s/logs/myapp.log
-stderr_logfile=%(ENV_HOME)s/logs/myapp-error.log
-```
-
-Management commands:
-```bash
-supervisorctl reread    # Detect config changes
-supervisorctl update    # Apply changes
-supervisorctl status    # Show all services
-supervisorctl restart <service>
-```
-
-### Backup System
-
-Uberspace provides automatic backups:
-- **Files**: `/backup/` (7 daily + 7 weekly)
-- **Databases**: `/mysql_backup/` (21 days)
-- Excluded: `no_backup/`, `tmp/`, `.cache/`, `cache/`
-
-## Implementation Patterns
-
-### Language-Specific Installation
-
-**PHP Apps** (WordPress, Nextcloud):
-1. Install to DocumentRoot or subdirectory
-2. No supervisord service needed (PHP-FPM automatic)
-3. Configure PHP via `~/etc/php.d/<app>.ini`
-4. Use CLI tools for automation (wp-cli, occ)
-5. Set up cron jobs for background tasks
-
-**Python Apps** (Django, Flask):
-1. Install outside DocumentRoot (security)
-2. Create virtual environment: `python3 -m venv venv`
-3. Install dependencies: `pip install -r requirements.txt`
-4. Create supervisord service with Gunicorn/uWSGI
-5. Collect static files to DocumentRoot
-6. Bind to `0.0.0.0:<port>` (NOT localhost)
-
-**Node.js Apps** (Ghost, Express):
-1. Install outside DocumentRoot
-2. Set Node version: `uberspace tools version use node 20`
-3. Install dependencies: `npm install`
-4. Create supervisord service
-5. Set environment: `NODE_ENV=production`
-6. Bind to `0.0.0.0:<port>`
-
-### Safety Features
-
-All operations should implement:
-- **Dry-run mode**: Show what would be done without executing
-- **Pre-flight checks**: Disk space, dependencies, port availability
-- **Automatic backups**: Before upgrades or destructive operations
-- **Rollback capability**: Restore previous version on failure
-- **Lock files**: Prevent concurrent operations on same app
-- **Validation**: Verify manifest schema before execution
-- **Verbose logging**: Detailed output for debugging
-
-### Error Handling
-
-- Always return descriptive errors with context
-- Include command output in error messages
-- Check for Uberspace-specific constraints (database naming, ports)
-- Validate prerequisites before starting operations
-- Clean up partial installations on failure
-
-## Adding New App Manifests
-
-To add a new pre-defined app:
-
-1. Create `apps/examples/<appname>.toml` with complete manifest
-2. Test installation in Uberspace environment
-3. Document any special requirements or post-install steps
-4. Add configuration templates to `internal/templates/` if needed
-5. Update README.md with app support
-
-To create custom app (user-extensible):
-
-1. Run `uberman init <appname>` to scaffold template
-2. Edit generated manifest with app-specific details
-3. Test with `uberman --dry-run install <appname>`
-4. Install with `uberman install <appname>`
-
-## Key Design Decisions
-
-### Why Go?
-- Single static binary (easy distribution)
-- Excellent standard library for system operations
-- Fast compilation and execution
-- Strong typing prevents configuration errors
-- Cross-compilation support
-
-### Why TOML for Manifests?
-- Human-readable and easy to edit
-- Strong typing (vs YAML's ambiguity)
-- Good Go library support (BurntSushi/toml)
-- Clear structure for nested configuration
-
-### Why Convention Over Configuration?
-- Reduces cognitive load for Ubernauts
-- Standardizes directory layouts across apps
-- Makes automation more reliable
-- Easier to troubleshoot and debug
-- Consistent backup/restore workflows
-
-### Self-Contained App Directories
-Each app in `~/apps/<app-name>/` contains everything needed:
-- Application code
-- Configuration files
-- Logs (symlinked to ~/logs/ for centralization)
-- Data and uploads
-- Local backups
-- This enables easy migration, cleanup, and isolation
-
-## Development Guidelines
-
-### Adding New Commands
-
-1. Create command file in `cmd/uberman/<command>.go`
-2. Register with cobra in `init()` function
-3. Implement core logic in appropriate `internal/` package
-4. Add `--dry-run` support
-5. Add `--verbose` logging
-6. Write tests in `*_test.go`
-7. Update README.md and this file
-
-### Code Style
-
-- Follow standard Go conventions (gofmt, golint)
-- Use descriptive variable names
-- Add comments for exported functions
-- Return errors, don't panic
-- Use structured logging
-- Validate inputs early
-- Keep functions focused and testable
-
-### Testing Strategy
-
-- Unit tests for all packages
-- Integration tests marked with build tag: `// +build integration`
-- Mock Uberspace commands in tests
-- Test dry-run mode separately
-- Test error conditions
-- Verify backup creation before destructive ops
-
-## Future Enhancements
-
-Planned features:
-- Multi-app orchestration (install multiple apps)
-- App dependencies (app A requires app B)
-- Health monitoring and alerts
-- Automatic security updates
-- Migration tools (import existing manual installations)
-- Web UI for non-CLI users
-- Ansible/Terraform integration
-- Git-based app definitions (remote manifests)
-
-## Related Resources
-
+**External**:
 - Uberspace Manual: https://manual.uberspace.de/
-- Uberspace Lab (installation guides): https://lab.uberspace.de/
-- Uberspace Lab Git Repository: https://github.com/Uberspace/lab
-- Project Issue Tracker: (to be added)
+- Uberspace Lab: https://lab.uberspace.de/
+- Shape Up (free book): https://basecamp.com/shapeup
+
+## Key Reminders
+
+### Strictly Forbidden
+
+- ❌ Planning future work beyond current cycle (use IDEAS.md only)
+- ❌ Adding time estimates to tasks
+- ❌ Creating backlogs
+- ❌ Implementing features not in current pitch
+- ❌ Extending deadlines without circuit breaker decision
+
+### Always Do
+
+- ✅ Use EARS format for requirements
+- ✅ Keep domain layer 100% pure
+- ✅ Work in 40-minute sessions
+- ✅ Update PLANNING.md with progress
+- ✅ Check architecture rules before committing
+- ✅ Conventional commits format
+- ✅ TDD approach (test first)
+
+### Remember
+
+- **Fixed time, variable scope** - cut features, never extend time
+- **Probe-Sense-Respond** - experiment, observe, adapt (Complex domain)
+- **Circuit breaker** - ship partial or kill, no shame in learning
+- **Good enough > perfect** - scope hammer aggressively
+- **Let ideas die** - most ideas in IDEAS.md will never be implemented (intentional)
+
+---
+
+**Last Updated**: 2025-11-03
+**Current Phase**: Cooldown (shaping, awaiting betting table)
+**Next Action**: Review pitch, decide to bet or not
