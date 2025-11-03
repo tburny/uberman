@@ -408,6 +408,34 @@ func TestDatabaseProvisioner_Integration(t *testing.T) {
 - **Slowest** (100ms+ acceptable)
 - Test happy path + critical errors
 
+## Release Strategy
+
+### Automated Releases
+
+Powered by semantic-release + GitHub Actions:
+- **Flow**: Push to main → test workflow → release workflow → version bump → build binaries → publish
+- **Versioning**: Conventional Commits determine version (feat: minor, fix: patch, BREAKING: major)
+- **Platforms**: Linux/macOS/Windows/FreeBSD (amd64/arm64)
+- **Configuration**: `.releaserc.json`, `.github/workflows/release.yml`
+
+### Manual Release (Emergency Override)
+
+```bash
+# Tag and push
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+
+# Build locally
+make release
+
+# Upload to GitHub
+gh release create v0.2.0 dist/* --title "v0.2.0" --notes "Emergency release"
+```
+
+### Skip CI
+
+Add `[skip ci]` to commit message to bypass workflows.
+
 ## Build Order (Probe-Sense-Respond)
 
 Following Shape Up methodology for COMPLEX domain (Cynefin):

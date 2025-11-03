@@ -21,6 +21,49 @@
 
 ---
 
+## 🎯 Initiative: Project Health & Quality (WIP: 1/1)
+
+**Cynefin**: CLEAR (best practices exist)
+**Strategy**: Sense-Categorize-Respond (apply known solutions)
+**Priority**: P1
+**Appetite**: 2 hours (spike)
+**Status**: ✅ COMPLETED
+
+### 📊 Epic: Documentation Cleanup (WIP: 1/1)
+
+**Appetite**: 2 hours (small batch spike)
+**Owner**: Claude Code
+**Start**: 2025-11-03
+**Status**: ✅ COMPLETED
+
+#### Story: Ruthless Documentation Reduction
+**EARS REQ-DOC-002**: When documentation exceeds what experienced developer needs, the system shall consolidate to minimal viable reference.
+
+**Tasks**:
+- [x] Phase 1: Delete 10 obsolete testing/implementation docs (~3,400 lines)
+- [x] Phase 1: Mark 6 user-facing docs as [OUTDATED]
+- [x] Phase 1: Create betting table decision (plans/cooldown/2025-11-03-betting-table.md)
+- [x] Phase 1: Update CLAUDE.md documentation status
+- [x] Phase 2: Delete 8 YAGNI process docs (CI/CD, commits, pre-commit) (~1,200 lines)
+- [x] Phase 2: Delete 3 EARS reference docs (~1,200 lines) - use requirements-engineer skill instead
+- [x] Phase 2: Move release strategy to ARCHITECTURE.md, delete docs/RELEASE_PROCESS.md (~460 lines)
+- [x] Phase 2: Simplify plans/README.md (230 → 118 lines)
+- [x] Phase 2: Update CLAUDE.md final documentation status
+- [x] Phase 2: Update PLANNING.md with spike completion
+
+**Success Criteria**:
+- ✅ 57% fewer files (46 → 20 files)
+- ✅ 66% less content (14,500 → 5,000 lines)
+- ✅ Zero YAGNI tutorials for experienced developer
+- ✅ Single source of truth for each concern
+- ✅ Requirements engineering via skill, not markdown files
+
+**Circuit Breaker**: If Phase 2 exceeds 90 minutes, ship what's done and defer remainder to cooldown.
+
+**Outcome**: Completed in ~80 minutes. Documentation reduced to minimal viable set. All tutorials for known tools removed. Essential info consolidated in ARCHITECTURE.md and CLAUDE.md.
+
+---
+
 ## 📊 Epic: Installation Workflow Implementation (WIP: 0/2)
 
 **EARS Requirements**: See PRD.md FR-001 through FR-010

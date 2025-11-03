@@ -330,48 +330,49 @@ These are specifications to implement, not suggestions.
 
 ### Trusted (Current Architecture)
 
-**Core:**
+**Core** (10 files):
 - CLAUDE.md, PRD.md, PLANNING.md, ARCHITECTURE.md, UBIQUITOUS_LANGUAGE.md
 - UBERSPACE_INTEGRATION.md, IDEAS.md, CHANGELOG.md
 
-**Shape Up:**
-- plans/README.md
+**Shape Up** (6 files):
+- plans/README.md (simplified to 118 lines)
 - plans/pitches/2025-11-03-rebuild-install-clean-architecture.md
 - plans/cooldown/2025-11-03-betting-table.md
-- plans/templates/* (3 files)
+- plans/templates/* (3 files: pitch, hill chart, betting table)
 
-**Requirements Engineering:**
-- docs/CONVENTIONAL_COMMITS.md, docs/PRE_COMMIT_HOOKS.md, docs/RELEASE_PROCESS.md
-- docs/EARS_GUIDE.md, docs/REQUIREMENTS_QUALITY.md, docs/REQUIREMENTS_EXAMPLES.md
-- docs/REQUIREMENTS_ENGINEERING_AGENT.md
-- templates/requirements/* (3 files)
-
-**Development:**
-- docs/CI_CD_SETUP.md
+**Total Trusted**: 16 files
 
 ### Outdated (Marked with Warning Banner)
 
-**User-Facing:**
+**User-Facing** (4 files):
 - README.md, CONTRIBUTING.md
-- docs/QUICKSTART.md, docs/INSTALLATION.md, docs/SETUP_VERIFICATION.md
-
-**Planning:**
-- docs/ROADMAP.md
+- docs/INSTALLATION.md, docs/SETUP_VERIFICATION.md
 
 **Note:** These will be updated after Clean Architecture refactoring completes.
 
-### Deleted (2025-11-03 Cleanup)
+### Deleted (2025-11-03 Documentation Cleanup Spike)
 
-**Testing Documentation:**
-- All testing guides moved to ARCHITECTURE.md (use `tdd-orchestrator` agent instead)
-- Deleted: TESTING.md, PROPERTY_BASED_TESTING.md, TEST_SUMMARY.md
-- Deleted: docs/TESTING.md, docs/DOCKER_TESTING.md, docs/TESTING_CHEATSHEET.md
-- Deleted: docs/CONTAINERIZED_TESTING_SUMMARY.md
+**Phase 1 - Testing & Implementation Reports** (10 files, ~3,400 lines):
+- Testing docs: TESTING.md, PROPERTY_BASED_TESTING.md, TEST_SUMMARY.md, docs/TESTING.md, docs/DOCKER_TESTING.md, docs/TESTING_CHEATSHEET.md, docs/CONTAINERIZED_TESTING_SUMMARY.md
+- Implementation reports: docs/ARCHITECTURE_DIAGRAM.md, docs/IMPLEMENTATION_REPORT.md, PROJECT_SUMMARY.md
+- Refactoring plans: CLEAN_ARCHITECTURE_REFACTORING_PLAN.md, CONTAINERIZED_TESTING_README.md
 
-**Implementation Reports:**
-- Deleted: docs/ARCHITECTURE_DIAGRAM.md, docs/IMPLEMENTATION_REPORT.md, PROJECT_SUMMARY.md
+**Phase 2 - YAGNI Process Documentation** (11 files, ~2,600 lines):
+- CI/CD docs: docs/CI_CD_SETUP.md, docs/RELEASE_PROCESS.md (consolidated to ARCHITECTURE.md)
+- Commit guides: docs/CONVENTIONAL_COMMITS.md, docs/PRE_COMMIT_HOOKS.md
+- Requirements docs: docs/EARS_GUIDE.md, docs/REQUIREMENTS_QUALITY.md, docs/REQUIREMENTS_ENGINEERING_AGENT.md
+- Requirements templates: templates/requirements/* (3 files)
+- User docs: docs/ROADMAP.md, docs/QUICKSTART.md
 
-**Rationale:** User has 15 years experience with TDD/testcontainers/property-based testing. Testing guides = YAGNI. Essential testing constraints moved to ARCHITECTURE.md.
+**Total Deleted**: 21 files, ~6,000 lines
+
+**Rationale**: User has 15 years experience with TDD, testcontainers, property-based testing, CI/CD, semantic-release, conventional commits. YAGNI documentation removed. Essential constraints consolidated in ARCHITECTURE.md. Requirements engineering available via `requirements-engineer` skill and slash commands.
+
+### Cumulative Impact
+
+**Before cleanup**: 46 files, ~14,500 lines
+**After cleanup**: 20 files, ~5,000 lines
+**Reduction**: 57% fewer files (-26), 66% less content (-9,500 lines)
 
 ### Priority Rule
 
