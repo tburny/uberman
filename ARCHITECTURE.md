@@ -241,9 +241,103 @@ func (p *Provisioner) CreateDirectories(ctx context.Context, paths []valueobject
 }
 ```
 
-## Testing Strategy
+## Testing Infrastructure
 
-### Test Pyramid
+### Platform Constraints
+
+**CRITICAL**: Cannot test on Uberspace itself (no CI/CD access to hosting environment).
+
+**Required Testing Approach**:
+- **Domain layer**: Pure tests (no I/O), < 1ms per test
+- **Infrastructure layer**: Isolated tests with testcontainers
+- **Integration**: ALL side effects MUST run in Docker containers
+
+### Testing Tools & Frameworks
+
+**Property-Based Testing**:
+- **Framework**: `pgregory.net/rapid`
+- **Purpose**: Verify invariants across generated inputs
+- **Common patterns**: Idempotency, round-trip, invariants, determinism
+- **Usage**: `rapid.Check(t, func(t *rapid.T) { ... })`
+
+**Container-Based Testing**:
+- **Framework**: `testcontainers-go` (MySQL module, generic containers)
+- **Purpose**: Test infrastructure adapters with real dependencies
+- **Required for**: Database operations, filesystem side effects, external commands
+- **Skip in short mode**: `if testing.Short() { t.Skip() }`
+
+**TDD Agent Integration**:
+For test-driven development assistance, use the specialized agent:
+```
+@tdd-orchestrator
+
+I need to implement [feature] in the [domain/infrastructure] layer
+```
+
+Agent provides:
+- Red-Green-Refactor cycle guidance
+- Test structure recommendations
+- Property-based test generation
+- Container setup for integration tests
+
+### Testing Commands
+
+```bash
+# Fast TDD cycle (native execution)
+go test -v ./internal/appinstallation/domain/...
+
+# Property-based tests only
+go test -v -run Property ./...
+
+# Integration tests (requires Docker)
+go test -v -run Integration ./...
+
+# Skip integration tests
+go test -short ./...
+
+# All tests with coverage
+go test -cover ./...
+
+# Makefile targets
+make test              # All tests
+make test-short        # Skip integration tests
+make test-properties   # Property-based only
+```
+
+### Testing Rules (Architecture Enforcement)
+
+**Domain Layer Rules**:
+- ✅ **ZERO imports from**: `os`, `exec`, `io`, `net`, `syscall`
+- ✅ **Tests MUST be pure** (no side effects, no I/O)
+- ✅ **Performance target**: < 1ms per test
+- ✅ **No mocks needed** (pure functions)
+
+**Infrastructure Layer Rules**:
+- ✅ **Use testcontainers** for all external dependencies
+- ✅ **Tests run in isolated Docker containers**
+- ✅ **Skip in short mode** for faster TDD cycles
+- ✅ **Performance target**: 10-20ms per test acceptable
+
+**Validation Command**:
+```bash
+# Verify domain layer has no forbidden imports
+go list -f '{{.ImportPath}}: {{.Imports}}' ./internal/appinstallation/domain/...
+
+# Should see ZERO: os, exec, io, net, syscall
+```
+
+### Test Performance Targets
+
+| Layer | Target | Constraint |
+|-------|--------|------------|
+| Domain | < 1ms per test | Pure functions, no I/O |
+| Application | < 5ms per test | In-memory adapters |
+| Infrastructure | 10-20ms per test | Testcontainers overhead acceptable |
+| E2E | 100ms+ per test | CLI integration acceptable |
+
+### Testing Strategy
+
+#### Test Pyramid
 
 ```
          ▲
@@ -258,13 +352,14 @@ func (p *Provisioner) CreateDirectories(ctx context.Context, paths []valueobject
 /─────────────────\
 ```
 
-### Domain Layer Tests (50%)
+#### Domain Layer Tests (50%)
 - **Pure unit tests**
 - **< 1ms per test**
 - **No mocks needed** (pure functions)
 - **100% coverage goal**
 - Test workflow state transitions
 - Test value object validation
+- Property-based tests for invariants
 
 **Example**:
 ```bash
@@ -274,19 +369,40 @@ ok    internal/appinstallation/domain/manifest      0.002s
 ok    internal/appinstallation/domain/valueobjects  0.001s
 ```
 
-### Application Layer Tests (30%)
+#### Application Layer Tests (30%)
 - **Use case tests with in-memory adapters**
 - **< 5ms per test**
 - Verify orchestration logic
 - Test error handling
 - Test all workflow paths
 
-### Infrastructure Layer Tests (15%)
+#### Infrastructure Layer Tests (15%)
 - **Contract tests** (all adapters implement interfaces)
-- **Integration tests** (with real filesystem/commands)
+- **Integration tests** (with real filesystem/testcontainers)
 - **Slower but thorough** (10-20ms per test acceptable)
+- **Always use testcontainers** for database/filesystem isolation
 
-### End-to-End Tests (5%)
+**Example with testcontainers**:
+```go
+func TestDatabaseProvisioner_Integration(t *testing.T) {
+    if testing.Short() {
+        t.Skip("Skipping integration test in short mode")
+    }
+
+    ctx := context.Background()
+    container, err := mysql.Run(ctx, "mysql:8.0",
+        mysql.WithDatabase("testdb"),
+        mysql.WithUsername("testuser"),
+        mysql.WithPassword("testpass"),
+    )
+    require.NoError(t, err)
+    defer container.Terminate(ctx)
+
+    // Test database provisioner with real MySQL...
+}
+```
+
+#### End-to-End Tests (5%)
 - **CLI integration tests**
 - **Verify user-facing behavior**
 - **Slowest** (100ms+ acceptable)

@@ -227,15 +227,36 @@ Stop immediately if:
 
 Before committing:
 - [ ] All tests pass: `go test ./...`
-- [ ] No linting errors: `golangci-lint run`
+- [ ] No linting errors: `go test -v ./...` (using pre-commit hooks)
 - [ ] Test coverage ≥ 75%: `go test -cover ./...`
-- [ ] Architecture rules validated (domain purity check)
+- [ ] Architecture rules validated: `go list -f '{{.ImportPath}}: {{.Imports}}' ./internal/appinstallation/domain/...`
 - [ ] Conventional commit format used
 
 **Test Performance Targets**:
-- Domain tests: < 1ms per test
-- Application tests: < 5ms per test
-- Integration tests: 10-20ms acceptable
+- Domain tests: < 1ms per test (pure, no I/O)
+- Application tests: < 5ms per test (in-memory adapters)
+- Integration tests: 10-20ms acceptable (testcontainers overhead)
+
+**Testing Tools**:
+- **TDD Agent**: Use `tdd-orchestrator` agent for guided test-driven development
+- **Property-based**: `pgregory.net/rapid` framework for invariant testing
+- **Integration**: `testcontainers-go` for isolated container tests (MySQL, filesystem)
+- **Docker**: Required for tests with side effects (database, filesystem operations)
+
+**Testing Commands**:
+```bash
+# Fast TDD cycle (native)
+go test -v ./internal/appinstallation/domain/...
+
+# Property-based tests
+go test -v -run Property ./...
+
+# Integration tests (requires Docker)
+go test -v -run Integration ./...
+
+# Skip slow tests
+go test -short ./...
+```
 
 ## Platform Constraints (Uberspace)
 
@@ -286,13 +307,14 @@ These are specifications to implement, not suggestions.
 **Core Documentation**:
 - **PRD.md**: Product requirements (MVP: install command only, EARS format)
 - **PLANNING.md**: Kanban board (Initiative → Epic → Story → Task)
-- **ARCHITECTURE.md**: Detailed Clean Architecture design
+- **ARCHITECTURE.md**: Detailed Clean Architecture design (includes testing infrastructure)
 - **UBIQUITOUS_LANGUAGE.md**: Domain glossary for App Installation context
 
 **Shape Up**:
 - **plans/README.md**: Shape Up methodology guide
 - **plans/pitches/**: Shaped work ready for betting
 - **plans/cycles/**: Active cycle tracking with hill charts
+- **plans/cooldown/**: Betting table decisions
 - **plans/templates/**: Pitch, hill chart, betting table templates
 
 **Reference**:
@@ -303,6 +325,57 @@ These are specifications to implement, not suggestions.
 - Uberspace Manual: https://manual.uberspace.de/
 - Uberspace Lab: https://lab.uberspace.de/
 - Shape Up (free book): https://basecamp.com/shapeup
+
+## Documentation Status (2025-11-03)
+
+### Trusted (Current Architecture)
+
+**Core:**
+- CLAUDE.md, PRD.md, PLANNING.md, ARCHITECTURE.md, UBIQUITOUS_LANGUAGE.md
+- UBERSPACE_INTEGRATION.md, IDEAS.md, CHANGELOG.md
+
+**Shape Up:**
+- plans/README.md
+- plans/pitches/2025-11-03-rebuild-install-clean-architecture.md
+- plans/cooldown/2025-11-03-betting-table.md
+- plans/templates/* (3 files)
+
+**Requirements Engineering:**
+- docs/CONVENTIONAL_COMMITS.md, docs/PRE_COMMIT_HOOKS.md, docs/RELEASE_PROCESS.md
+- docs/EARS_GUIDE.md, docs/REQUIREMENTS_QUALITY.md, docs/REQUIREMENTS_EXAMPLES.md
+- docs/REQUIREMENTS_ENGINEERING_AGENT.md
+- templates/requirements/* (3 files)
+
+**Development:**
+- docs/CI_CD_SETUP.md
+
+### Outdated (Marked with Warning Banner)
+
+**User-Facing:**
+- README.md, CONTRIBUTING.md
+- docs/QUICKSTART.md, docs/INSTALLATION.md, docs/SETUP_VERIFICATION.md
+
+**Planning:**
+- docs/ROADMAP.md
+
+**Note:** These will be updated after Clean Architecture refactoring completes.
+
+### Deleted (2025-11-03 Cleanup)
+
+**Testing Documentation:**
+- All testing guides moved to ARCHITECTURE.md (use `tdd-orchestrator` agent instead)
+- Deleted: TESTING.md, PROPERTY_BASED_TESTING.md, TEST_SUMMARY.md
+- Deleted: docs/TESTING.md, docs/DOCKER_TESTING.md, docs/TESTING_CHEATSHEET.md
+- Deleted: docs/CONTAINERIZED_TESTING_SUMMARY.md
+
+**Implementation Reports:**
+- Deleted: docs/ARCHITECTURE_DIAGRAM.md, docs/IMPLEMENTATION_REPORT.md, PROJECT_SUMMARY.md
+
+**Rationale:** User has 15 years experience with TDD/testcontainers/property-based testing. Testing guides = YAGNI. Essential testing constraints moved to ARCHITECTURE.md.
+
+### Priority Rule
+
+**When conflicts arise:** Trust "Trusted" files over "Outdated" files.
 
 ## Key Reminders
 

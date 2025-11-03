@@ -1,5 +1,10 @@
 # Setup Verification Guide
 
+> **⚠️ REFACTORING IN PROGRESS**
+> This document references code deleted during 2025-11-03 Clean Architecture refactoring.
+> See CLAUDE.md, ARCHITECTURE.md, PLANNING.md for current state.
+> Will update after refactoring completes.
+
 This document helps you verify that the Uberman project is correctly set up.
 
 ## Git Repository Status

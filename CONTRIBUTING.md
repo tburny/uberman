@@ -1,5 +1,10 @@
 # Contributing to Uberman
 
+> **⚠️ REFACTORING IN PROGRESS**
+> This document references code deleted during 2025-11-03 Clean Architecture refactoring.
+> See CLAUDE.md, ARCHITECTURE.md, PLANNING.md for current state.
+> Will update after refactoring completes.
+
 Thank you for your interest in contributing to Uberman! This document provides guidelines for contributing to the project.
 
 ## How to Contribute

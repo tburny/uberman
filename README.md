@@ -1,5 +1,10 @@
 # Uberman - Uberspace App Management System
 
+> **⚠️ REFACTORING IN PROGRESS**
+> This document references code deleted during 2025-11-03 Clean Architecture refactoring.
+> See CLAUDE.md, ARCHITECTURE.md, PLANNING.md for current state.
+> Will update after refactoring completes.
+
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/dl/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/tburny/uberman)](https://github.com/tburny/uberman/releases)

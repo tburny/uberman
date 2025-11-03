@@ -1,5 +1,10 @@
 # Uberman Development Roadmap
 
+> **⚠️ REFACTORING IN PROGRESS**
+> This document references code deleted during 2025-11-03 Clean Architecture refactoring.
+> See CLAUDE.md, ARCHITECTURE.md, PLANNING.md for current state.
+> Will update after refactoring completes.
+
 This document outlines the current implementation status and planned features for Uberman.
 
 ## Current Status: v0.1.0 (Foundation)

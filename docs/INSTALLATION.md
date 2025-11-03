@@ -1,5 +1,10 @@
 # Installation Guide
 
+> **⚠️ REFACTORING IN PROGRESS**
+> This document references code deleted during 2025-11-03 Clean Architecture refactoring.
+> See CLAUDE.md, ARCHITECTURE.md, PLANNING.md for current state.
+> Will update after refactoring completes.
+
 Complete installation instructions for Uberman across all platforms.
 
 ## Quick Start
