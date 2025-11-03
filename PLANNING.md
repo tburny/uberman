@@ -1,6 +1,6 @@
 # Planning Board - Uberman Clean Architecture
 
-**Last Updated**: 2025-11-03
+**Last Updated**: 2025-11-04
 **Cycle**: Not started (reviewing pitch for betting table)
 **WIP Limits**: Initiative: 1/1 | Epic: 1/2 | Story: 2/4 | Task: 1/1 per person
 **NO TIME ESTIMATES** - Tasks scoped to 40-minute sessions
@@ -61,6 +61,38 @@
 **Circuit Breaker**: If Phase 2 exceeds 90 minutes, ship what's done and defer remainder to cooldown.
 
 **Outcome**: Completed in ~80 minutes. Documentation reduced to minimal viable set. All tutorials for known tools removed. Essential info consolidated in ARCHITECTURE.md and CLAUDE.md.
+
+### 📊 Epic: Documentation Infrastructure (WIP: 1/1)
+
+**Appetite**: 2 hours (exploration)
+**Owner**: Claude Code
+**Start**: 2025-11-03
+**Status**: ✅ COMPLETED
+
+#### Story: Diataxis Documentation Framework
+**EARS REQ-DOC-003**: When writing documentation, the system shall provide skill with Diataxis taxonomy and Docs for Developers methodology for "good enough for now" approach.
+
+**Tasks**:
+- [x] Research Diataxis framework (diataxis.fr) and best practices
+- [x] Research Docs for Developers book (Bhatti et al., 2021)
+- [x] Research Claude Code skills best practices (2025)
+- [x] Create writing-documentation skill with 5 prompting patterns
+- [x] Create reference docs: Diataxis framework (506 lines)
+- [x] Create reference docs: Docs for Developers workflow (520 lines)
+- [x] Create reference docs: Documentation templates (817 lines)
+- [x] Add ADR template (decisions/template.md)
+- [x] Update README navigation with documentation sections
+- [x] Update .gitignore (exclude epub files)
+- [x] Commit: docs: add writing-documentation skill
+
+**Success Criteria**:
+- ✅ Skill invokable with @writing-documentation
+- ✅ 5 prompting patterns for instructing Claude
+- ✅ Reference docs serve dual purpose (skill + manual reference)
+- ✅ Incremental "good enough for now" approach documented
+- ✅ Uberman-specific context integrated (60/25/15/10 distribution)
+
+**Outcome**: Completed in ~90 minutes. Created comprehensive documentation framework combining Diataxis + Docs for Developers. Skill provides content type decision tree, prompting patterns, and quality workflow. Reference docs (2,341 lines) serve as both skill references and standalone documentation. Foundation for future documentation work and potential related skills (quality-reviewer, template-generator).
 
 ---
 
