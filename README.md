@@ -411,6 +411,26 @@ See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## Documentation
+
+### User Documentation
+
+- **Reference**: [CLI Commands](docs/cli-reference.md) | [Manifest Schema](docs/manifest-schema.md) | [Error Codes](docs/error-codes.md)
+- **Guides**: [Creating Manifests](docs/creating-manifests.md) | [Troubleshooting](docs/troubleshooting.md)
+- **Apps**: See `apps/<app_name>/README.md` for installation guides
+- **Requirements**: [EARS Guide](docs/EARS_GUIDE.md) | [Quality Framework](docs/REQUIREMENTS_QUALITY.md) | [Agent Usage](docs/REQUIREMENTS_ENGINEERING_AGENT.md)
+
+### Developer Documentation
+
+- **Architecture**: [ARCHITECTURE.md](ARCHITECTURE.md) | [Clean Architecture](CLAUDE.md) | [Planning](PLANNING.md)
+- **Decisions**: See [decisions/](decisions/) for architectural decision records (ADRs)
+- **AI Collaboration**: See [docs/ai-copilot/](docs/ai-copilot/) for lessons learned working with AI
+
+### Project Management
+
+- **Shape Up**: [Methodology](plans/README.md) | [Current Cycle](plans/cycles/) | [Pitches](plans/pitches/)
+- **Ubiquitous Language**: [Domain Glossary](UBIQUITOUS_LANGUAGE.md)
+
 ## Acknowledgments
 
 - Inspired by [Uberspace Lab](https://lab.uberspace.de/) installation guides
