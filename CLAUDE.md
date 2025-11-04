@@ -10,6 +10,8 @@ Guidance for Claude Code when working with this repository.
 **MVP Scope**: `uberman install <app>` command ONLY
 **Approach**: Delete existing code, rebuild with correct bounded context
 
+**Methodology**: See [docs/methodology/explanation/shape-up-and-sessions.md](docs/methodology/explanation/shape-up-and-sessions.md) for complete planning + execution system
+
 ## Bounded Context (DDD)
 
 **Single Context**: "App Installation" (Go directory: `appinstallation`)
@@ -144,84 +146,48 @@ See plans/README.md for Shape Up guide.
 
 ## Session Management (PERMANENT)
 
-### Time Boxing
+**Full methodology**: [docs/methodology/explanation/shape-up-and-sessions.md](docs/methodology/explanation/shape-up-and-sessions.md)
+**Practical guide**: [docs/methodology/how-to/run-a-session.md](docs/methodology/how-to/run-a-session.md)
+**Command reference**: [docs/methodology/reference/session-commands.md](docs/methodology/reference/session-commands.md)
 
-- **Maximum session**: 40 minutes
-- **Break**: 10 minutes between sessions
-- **Daily max**: 6 sessions
-- **Types**: Planning | Execution | Review
+### Automatic Session Tracking
 
-### Kill Criteria (Check Every Session)
+Sessions use automatic time tracking via session-manager agent:
+- Starts: `/session start <task>`
+- Monitors: Every message (working time vs paused time)
+- Auto-pauses: Task agents >10 min, user idle >5 min
+- Reminds: Break at 40 min, warning at 60 min, timeout at 90 min
+- Stops: `/session stop` (keep or discard decision)
 
-Stop immediately if:
-1. Same error repeated 3x despite different approaches
-2. Core requirement misunderstood (check EARS in PRD.md)
-3. Architecture rule violated (check layer imports)
-4. Token cost exceeds $5 for single task
-5. No measurable progress in 2 consecutive sessions
+### Session Branch Workflow
 
-### Before ANY Session
+All work happens on ephemeral branches:
+- Branch: `session/YYYYMMDD-scope-task`
+- Freedom to experiment (throw away if doesn't work)
+- Keep: Squash merge to main with session metadata
+- Discard: Delete branch, record learning in cycle file
 
-1. Read current story from PLANNING.md
-2. Read EARS requirements from epic
-3. Identify task to work on
-4. Check session type (Planning or Execution)
-5. Set 40-minute timer
+### Session Commands
 
-### Planning Session (Read-Only Mode)
+- `/session start <task>` - Begin session, create branch, start timer
+- `/session stop` - End session, prompt keep/discard
+- `/session pause [reason]` - Manual pause (overrides auto)
+- `/session resume` - Resume from pause
+- `/session status` - Show current session details
 
-- Generate specifications only
-- NO code implementation
-- Output: Plan document
-- Requires approval before execution
+### Health-First Protocol
 
-### Execution Session
+Progressive reminders enforce breaks:
+- **40 min**: Gentle reminder (target reached)
+- **60 min**: Warning (50% over target)
+- **90 min**: Hard timeout (work paused until break)
 
-- Follow approved plan
-- One task only per session
-- TDD: Test first, then implementation
-- Update PLANNING.md with progress
+Auto-pause excludes non-working time:
+- Task agent research (>10 min)
+- User idle (>5 min between messages)
+- Manual breaks (explicit pause)
 
-### End of Session
-
-- Update task status in PLANNING.md
-- Note blockers
-- Commit if complete (conventional commits)
-- Update hill chart (if in cycle)
-
-## Decision Framework (PERMANENT)
-
-### Assumption Scoring
-
-- **p < 60%**: Ask user to refine
-- **p = 60-90%**: Ask approval if high impact, apply if low impact
-- **p > 90%**: Notify user, apply automatically
-
-### Impact Assessment
-
-**Low Impact**:
-- < 20 LOC added
-- No external dependencies
-- Easily removable (single method/function)
-- No database schema changes
-- No breaking API changes
-
-**High Impact**:
-- > 50 LOC added
-- New dependencies/libraries
-- Database migrations required
-- API contract changes
-- Cross-cutting concerns (auth, logging, caching)
-
-### Cynefin Classification (for Initiatives)
-
-- **CLEAR**: Best practices exist → Sense-Categorize-Respond
-- **COMPLICATED**: Expert analysis needed → Sense-Analyze-Respond
-- **COMPLEX**: Unknown unknowns → Probe-Sense-Respond ← **Current refactoring**
-- **CHAOTIC**: Crisis → Act-Sense-Respond
-
-**Current Initiative**: Clean Architecture Refactoring = **COMPLEX**
-**Strategy**: Probe-Sense-Respond (experiment, observe, adapt)
+See [docs/methodology/how-to/run-a-session.md](docs/methodology/how-to/run-a-session.md) for complete workflow.
 
 ## Quality Gates (Go-Specific)
 
@@ -275,20 +241,31 @@ See UBERSPACE_INTEGRATION.md for commands and details.
 ### Work Organization
 
 ```
-.project/                  # If needed for additional tracking
 plans/                     # Shape Up pitches, cycles, cooldown
-├── templates/
-├── pitches/
-├── cycles/
-└── cooldown/
+├── pitches/               # Shaped work ready for betting
+├── cycles/                # Active cycle tracking
+│   ├── cycle-NN.md        # Current cycle (only one active)
+│   └── archive/           # Completed cycles (SHIPPED or KILLED)
+├── cooldown/              # Betting table decisions
+└── templates/             # Reusable templates
+
+docs/methodology/          # Methodology documentation (Diataxis)
+├── explanation/           # Understanding-oriented (WHY)
+├── how-to/                # Task-oriented (DO THIS)
+├── reference/             # Information-oriented (LOOKUP)
+└── tutorial/              # Learning-oriented (LEARN)
+
+.claude/
+├── session-state.json     # Active session runtime state (ephemeral)
+├── workflows/             # Claude Code protocols
+├── commands/session.md    # /session slash command
+└── agents/session-manager/ # Automatic time tracking agent
+
+scripts/
+├── session-start.sh       # Helper: Create branch, init state
+├── session-stop.sh        # Helper: Merge/delete, commit metadata
+└── session-update-cycle.sh # Helper: Update cycle metrics
 ```
-
-### Status Markers (in PLANNING.md)
-
-- [ ] Todo
-- [-] In Progress (currently working on this)
-- [R] Review needed
-- [x] Complete
 
 ### EARS Requirements Format
 
@@ -306,16 +283,18 @@ These are specifications to implement, not suggestions.
 
 **Core Documentation**:
 - **PRD.md**: Product requirements (MVP: install command only, EARS format)
-- **PLANNING.md**: Kanban board (Initiative → Epic → Story → Task)
 - **ARCHITECTURE.md**: Detailed Clean Architecture design (includes testing infrastructure)
 - **UBIQUITOUS_LANGUAGE.md**: Domain glossary for App Installation context
 
-**Shape Up**:
-- **plans/README.md**: Shape Up methodology guide
+**Methodology** (Shape Up + Session Management):
+- **[docs/methodology/explanation/shape-up-and-sessions.md](docs/methodology/explanation/shape-up-and-sessions.md)**: Complete methodology (START HERE)
+- **[docs/methodology/how-to/](docs/methodology/how-to/)**: Practical guides (plan cycle, run session, update hill chart)
+- **[docs/methodology/reference/](docs/methodology/reference/)**: Command syntax, formats, schemas
+- **[docs/methodology/tutorial/](docs/methodology/tutorial/)**: First cycle walkthrough
+- **plans/README.md**: Shape Up basics quick reference
 - **plans/pitches/**: Shaped work ready for betting
-- **plans/cycles/**: Active cycle tracking with hill charts
+- **plans/cycles/**: Active cycle tracking
 - **plans/cooldown/**: Betting table decisions
-- **plans/templates/**: Pitch, hill chart, betting table templates
 
 **Reference**:
 - **UBERSPACE_INTEGRATION.md**: Platform-specific commands
@@ -393,7 +372,7 @@ These are specifications to implement, not suggestions.
 - ✅ Use EARS format for requirements
 - ✅ Keep domain layer 100% pure
 - ✅ Work in 40-minute sessions
-- ✅ Update PLANNING.md with progress
+- ✅ Update cycle file with progress
 - ✅ Check architecture rules before committing
 - ✅ Conventional commits format
 - ✅ TDD approach (test first)
