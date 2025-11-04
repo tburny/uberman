@@ -52,3 +52,9 @@ build/
 
 *.epub
 epub_extracted
+
+# Session state (ephemeral runtime data)
+.claude/session-state.json
+
+# Pending implementation plans (temporary)
+plans/PENDING-*.md
