@@ -2,6 +2,26 @@
 
 This directory contains shaped work, active cycles, and betting decisions following Shape Up methodology.
 
+## Complete Methodology Documentation
+
+For the full integrated development methodology combining Shape Up planning with automatic session management:
+
+**→ [docs/methodology/explanation/shape-up-and-sessions.md](../docs/methodology/explanation/shape-up-and-sessions.md)** ← START HERE
+
+This covers:
+- **Why**: Philosophy behind Shape Up + session management
+- **How**: Practical guides for cycles, sessions, hill charts
+- **Reference**: Command syntax, formats, schemas
+- **Tutorial**: Complete first cycle walkthrough
+
+---
+
+## Quick Reference: Shape Up Basics
+
+This README provides a quick reference for Shape Up methodology. For complete documentation including session management, see the link above.
+
+---
+
 ## Directory Structure
 
 ```
