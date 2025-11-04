@@ -707,16 +707,823 @@ stateDiagram-v2
 
 ---
 
-## What's Next?
+## 6. Integration: How Planning and Execution Unite
 
-This document covered sections 1-5 (introduction through session management). The next sections will cover:
+The power of this methodology comes from tight integration between Shape Up (planning) and session management (execution).
 
-6. **Integration** - How planning and execution unite
-7. **Comparison** - vs Scrum, vs Kanban, vs ad-hoc
-8. **Benefits** - What you gain from this system
-9. **Trade-offs** - What you give up
-10. **References** - Basecamp's Shape Up book
+### Cycle Files Connect Both Layers
 
-**Continue reading**: These sections will be added in the next phase of documentation.
+**Cycle file structure**:
+```markdown
+# Cycle 01: Clean Architecture Refactoring
 
-**Start using**: See the practical guides in `how-to/` for step-by-step workflows.
+**Status**: ACTIVE
+**Dates**: 2025-11-04 to 2025-12-15 (6 weeks)
+**Circuit Breaker**: 2025-12-15
+
+## Current Status
+**Active Scope**: Domain Layer Foundation
+**Active Session**: session/20251104-domain-databasename (38 min working)
+
+## Hill Chart (Week 1: Nov 4-8)
+Scope1: ● (uphill - learning validation patterns)
+Scope2: ○ (not started)
+
+## Session Metrics
+### Week 1
+- **Sessions completed**: 5
+- **Total working time**: 3.2 hours
+- **Avg session**: 38 min (target: 40)
+```
+
+**Integration points**:
+1. **Active Session** links to current branch
+2. **Session Metrics** inform Hill Chart position
+3. **Hill Chart** reveals if scope hammer needed
+4. **Circuit Breaker** date enforces time box
+
+### Session Commits Reference Cycle Context
+
+**Commit format**:
+```
+feat(domain): create DatabaseName value object
+
+Session: 20251104 14:23-15:01 (38 min actual, 4 min paused)
+
+Created DatabaseName value object with validation. Learned that
+pattern-based validation is more maintainable than regex checking
+character-by-character.
+
+Cycle: 01 (Clean Architecture)
+Scope: Domain Layer Foundation
+Hill: Uphill (still learning validation patterns)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**What this captures**:
+- Session metadata (time, pauses)
+- Learning (what was discovered)
+- Cycle context (which cycle, which scope)
+- Hill position (uphill vs downhill)
+
+**Why this matters**:
+- Git log becomes project history
+- Sessions searchable: `git log --grep="Session:"`
+- Learnings preserved permanently
+- Velocity calculable from history
+
+### Hill Charts Update from Session Data
+
+**Friday afternoon ritual**:
+1. Review week's sessions (from cycle file)
+2. Check session metrics (avg time, discarded count)
+3. Assess scope position:
+   - Many discarded sessions? Still uphill (figuring out)
+   - Sessions kept, tests passing? Moving downhill (executing)
+4. Update hill chart position
+5. Update "Next Session" task
+
+**Example assessment**:
+```
+Week 1 sessions for "Domain Layer Foundation":
+- 5 completed (3.2 hours total)
+- 4 kept, 1 discarded
+- Discarded: state machine approach (too complex)
+
+Assessment: Still uphill (exploring validation patterns)
+Hill position: ● (40% toward crest)
+```
+
+**Scope stuck uphill?**
+- >2 weeks uphill = warning
+- Trigger scope hammer consideration
+- Question: Must-have or nice-to-have?
+
+### Scope Hammer Triggered by Session Struggles
+
+**Scenario**: Week 5, Tuesday afternoon
+- Filesystem scope: 12 sessions, still uphill
+- 8 sessions discarded (exploring Docker testcontainers)
+- Circuit breaker in 3 days
+- CLI scope not started
+
+**Trigger**: Session data shows scope consuming time budget
+
+**Decision process**:
+1. Review session metrics (time spent vs progress)
+2. Check hill chart (uphill vs downhill)
+3. Calculate remaining time (appetite vs actual)
+4. Question: Must-have or nice-to-have?
+5. Cut or simplify
+
+**Action**: Cut nice-to-have (Docker testing), simplify must-have (filesystem only)
+
+**Record in cycle file**:
+```markdown
+## Scope Hammer Log
+- 2025-12-10: Cut Docker testcontainers from Filesystem scope
+  Why: 12 sessions uphill, circuit breaker in 3 days
+  Impact: Filesystem tests use real temp dirs (still validated)
+```
+
+### Circuit Breaker Informed by Session Velocity
+
+**Week 6, Friday - Circuit breaker day**
+
+**Assessment**:
+1. Check hill chart: Which scopes downhill? Which uphill?
+2. Check session metrics: Total time, kept vs discarded ratio
+3. Check must-haves: Are they working?
+
+**Scenario A - Ship Partial**:
+- Domain: Downhill, 8 sessions (5.2 hours), tests passing ✓
+- In-Memory: Downhill, 4 sessions (2.8 hours), tests passing ✓
+- Filesystem: Uphill, 12 sessions (8.1 hours), tests brittle ✗
+- CLI: Not started ✗
+
+**Decision**: Ship Domain + In-Memory (proves pattern works)
+
+**Scenario B - Kill**:
+- All scopes uphill
+- 30+ sessions, 24 hours spent
+- Core assumption wrong (domain can't be made pure)
+
+**Decision**: Kill project, record learnings, reshape
+
+**Scenario C - Extend** (rare):
+- Domain, In-Memory, Filesystem: Downhill, tests passing ✓
+- CLI: 90% done, 2 sessions needed
+
+**Decision**: Extend 1 week (all must-haves working, tiny remaining work)
+
+### Auto-Pause Logic Flow
+
+```mermaid
+flowchart TD
+    A[Message Received] --> B{Active Session?}
+    B -->|No| C[No Action]
+    B -->|Yes| D[Calculate Elapsed Time]
+    D --> E{Time Since Last Message}
+    E -->|<5 min| F[Count as Working Time]
+    E -->|>5 min| G[Auto-Pause: IDLE]
+    D --> H{Task Agent Running?}
+    H -->|>10 min| I[Auto-Pause: TASK]
+    H -->|<10 min| F
+    F --> J[Update Working Time]
+    G --> K[Update Paused Time]
+    I --> K
+    J --> L{Check Reminders}
+    K --> L
+    L -->|40 min| M[Break Reminder]
+    L -->|60 min| N[Warning]
+    L -->|90 min| O[Timeout]
+```
+
+**How they connect**:
+- Task agents pause sessions (research doesn't count as working)
+- Paused time excluded from session metrics
+- Honest working time informs velocity
+- Velocity informs hill chart updates
+- Hill chart informs circuit breaker decisions
+
+### Git Workflow Integration
+
+**Session branch lifecycle**:
+
+1. **Start session**: `/session start domain-databasename`
+   - Creates branch: `session/20251104-domain-databasename`
+   - From: `main` branch
+   - Session state: `IN_PROGRESS`
+
+2. **Work**: TDD cycles, commits
+   - Commits stay on session branch
+   - Main branch unaffected
+   - Freedom to experiment
+
+3. **Stop session**: `/session stop`
+   - Prompts: Keep or discard?
+   - **Keep**: Squash merge to main, commit with metadata
+   - **Discard**: Delete branch, record learning
+
+4. **Update cycle file**: Metrics, learnings
+   - Session added to metrics
+   - Learning captured if discarded
+   - Next session task updated
+
+**Main branch stays clean**:
+- Only merged session work
+- Each commit has session metadata
+- History shows learning progression
+
+**Session branches are ephemeral**:
+- Created for session
+- Deleted after keep/discard
+- Date in name shows staleness
+
+### Learning Loop
+
+**Discarded sessions feed back into planning**:
+
+1. **Session fails**: Approach doesn't work
+2. **Branch discarded**: Delete work
+3. **Learning recorded**: "State machine too complex"
+4. **Hill chart updated**: Scope still uphill
+5. **Next session planned**: "Try procedural approach"
+6. **Session succeeds**: Procedural works
+7. **Branch kept**: Merge to main
+
+**Failed experiments are valuable**:
+- Fast feedback (40 min, not 40 hours)
+- Learning captured (why it failed)
+- Alternative approaches tried
+- Scope position accurate (uphill if exploring)
+
+**Shape Up principle**: Probe-Sense-Respond (Complex domain)
+- Probe: Try session approach
+- Sense: Keep or discard feedback
+- Respond: Adjust next session
+
+---
+
+## 7. Comparison: vs Scrum, vs Kanban, vs Ad-Hoc
+
+### vs Scrum
+
+**Scrum Characteristics**:
+- 2-week sprints (fixed time)
+- Sprint planning (estimate story points)
+- Daily standups (coordination)
+- Sprint backlog (committed work)
+- Retrospectives (team learning)
+
+**Shape Up + Sessions Differences**:
+
+| Aspect | Scrum | Shape Up + Sessions |
+|--------|-------|---------------------|
+| **Time box** | 2 weeks (sprints) | 6 weeks (cycles) or 1-2 weeks (small batch) |
+| **Scope** | Fixed (committed stories) | Variable (scope hammer) |
+| **Planning** | Sprint planning (estimates) | Shaping (appetite, no estimates) |
+| **Backlog** | Groomed, prioritized | None (IDEAS.md, unstructured) |
+| **Progress tracking** | Burndown charts | Hill charts (uphill/downhill) |
+| **Deadline** | Sprint end (soft) | Circuit breaker (hard) |
+| **Coordination** | Daily standups | None (solo) |
+| **Session tracking** | Manual (honor system) | Automatic (time tracking) |
+| **Failed work** | Technical debt | Discarded, recorded |
+
+**When to use Scrum**:
+- Team coordination needed
+- Fixed scope required (contract)
+- Client expects traditional reporting
+
+**When to use Shape Up + Sessions**:
+- Solo developer
+- Product ownership (not client work)
+- Sustainable pace prioritized
+- Learning velocity valued
+
+### vs Kanban
+
+**Kanban Characteristics**:
+- Continuous flow (no time boxes)
+- WIP limits (prevent overload)
+- Pull system (start when capacity)
+- Kanban board (To Do, In Progress, Done)
+- No estimation
+
+**Shape Up + Sessions Differences**:
+
+| Aspect | Kanban | Shape Up + Sessions |
+|--------|--------|---------------------|
+| **Time structure** | None (continuous) | Cycles + cooldown |
+| **Deadline** | None (flow) | Circuit breaker (hard) |
+| **Scope** | Variable (tasks flow) | Variable (but within cycle) |
+| **Planning** | Just-in-time | Shaping (cooldown) |
+| **Progress** | Board position | Hill charts |
+| **WIP limits** | Enforced (e.g., 3 tasks) | One cycle, one scope active |
+| **Session tracking** | Manual | Automatic |
+| **Failed work** | Stuck in "In Progress" | Discarded, recorded |
+
+**When to use Kanban**:
+- Maintenance work (bugs, support)
+- Unpredictable workload
+- No need for time boxes
+
+**When to use Shape Up + Sessions**:
+- Building features (not maintenance)
+- Need circuit breaker discipline
+- Health-first work important
+
+**Note**: Uberman previously used Kanban hybrid (PLANNING.md). Abandoned because:
+- No circuit breaker (projects dragged on)
+- No scope hammer (gold-plating)
+- No session tracking (unsustainable pace)
+
+### vs Ad-Hoc (No Methodology)
+
+**Ad-Hoc Characteristics**:
+- Work on whatever feels important
+- No planning, no tracking
+- Code until it's "done"
+- No time boxes, no health enforcement
+
+**Shape Up + Sessions Differences**:
+
+| Aspect | Ad-Hoc | Shape Up + Sessions |
+|--------|--------|---------------------|
+| **Planning** | None (reactive) | Shaping (proactive) |
+| **Time box** | None (open-ended) | Cycles (fixed time) |
+| **Deadline** | When it's done | Circuit breaker (hard) |
+| **Scope** | Whatever feels right | Appetite (constrained) |
+| **Progress visibility** | Gut feeling | Hill charts |
+| **Session health** | Work until tired | Auto-pause, reminders |
+| **Failed experiments** | Forgotten | Recorded learnings |
+| **Velocity** | Unknown | Measured (session metrics) |
+
+**When ad-hoc works**:
+- Hobby projects (no pressure)
+- Exploration/learning (not shipping)
+- Very short tasks (< 1 hour)
+
+**When ad-hoc fails**:
+- Projects never ship
+- Burnout from overwork
+- No learning from failures
+- Unclear progress
+
+**Shape Up + Sessions fixes**:
+- Circuit breaker forces shipping
+- Auto-pause prevents burnout
+- Discarded sessions capture learning
+- Hill charts show progress
+
+---
+
+## 8. Benefits: What You Gain
+
+### Predictable Shipping
+
+**Problem**: Projects drag on for months, never ship.
+
+**Solution**: Circuit breaker at end of cycle.
+
+**Benefit**:
+- Ship partial or kill, never extend
+- 6-week cycles = 8 cycles per year
+- Even if 50% killed, 4 features shipped
+- Better than 1 feature in 12 months
+
+**Quantified**:
+- Traditional: 1-2 features/year (unpredictable)
+- Shape Up: 4-8 cycles/year (predictable)
+
+### Sustainable Pace
+
+**Problem**: Work 3+ hours straight, burn out, quit.
+
+**Solution**: Auto-pause, progressive reminders, hard timeout.
+
+**Benefit**:
+- 40-minute sessions = 6 sessions/day max
+- 4 hours actual working time (healthy)
+- Breaks enforced (cognitive recovery)
+- Long-term sustainability
+
+**Health metrics**:
+- Reminder at 40 min (85% of sessions)
+- Warning at 60 min (10% of sessions)
+- Timeout at 90 min (5% of sessions, declining over time)
+
+### Honest Velocity Measurement
+
+**Problem**: Don't know how long things actually take.
+
+**Solution**: Automatic time tracking (working vs paused).
+
+**Benefit**:
+- Know real velocity (e.g., 3 hours/week)
+- Set realistic appetites (6 weeks = 24-30 hours)
+- Stop lying to yourself about productivity
+- Improve over time (learning compounds)
+
+**Example**:
+- Week 1: 3.2 hours (5 sessions, avg 38 min)
+- Week 2: 4.1 hours (6 sessions, avg 41 min)
+- Week 3: 3.8 hours (5 sessions, avg 46 min, 1 warning)
+- Trend: 3-4 hours/week sustainable
+
+### Fast Feedback on Ideas
+
+**Problem**: Spend months on feature, realize it doesn't work.
+
+**Solution**: Circuit breaker kills failed projects in 6 weeks.
+
+**Benefit**:
+- Max 6 weeks wasted (not 6 months)
+- Learning captured (why it failed)
+- Can try different approach
+- Portfolio of learnings grows
+
+**Example**:
+- Cycle 01: Clean Architecture (shipped partial)
+- Cycle 02: GraphQL API (killed - too complex)
+- Cycle 03: REST API (shipped - learned from #02)
+
+### Psychological Safety
+
+**Problem**: Fear of experimenting (might break main branch).
+
+**Solution**: Session branches (freedom to fail).
+
+**Benefit**:
+- Try risky refactorings (can discard)
+- Explore alternatives (recorded if failed)
+- No fear of breaking main
+- Bold experimentation enabled
+
+**Metrics**:
+- 20-30% sessions discarded (healthy exploration)
+- Failed experiments inform successful ones
+- Learning rate higher than conservative approach
+
+### Scope Hammer Forces Prioritization
+
+**Problem**: Try to build everything, ship nothing.
+
+**Solution**: Time-boxed cycles + scope hammer.
+
+**Benefit**:
+- Must-haves vs nice-to-haves forced
+- Good enough > perfect
+- Ships working partial feature
+- Can add polish in future cycle
+
+**Example**:
+- Week 1: Domain + App + Infrastructure + CLI (4 scopes)
+- Week 5: Domain + In-Memory only (2 scopes)
+- Circuit breaker: Ship working partial
+- Future cycle: Add Filesystem if pain emerges
+
+### No Backlog Maintenance Overhead
+
+**Problem**: Spend hours grooming backlog, prioritizing stories.
+
+**Solution**: IDEAS.md (unstructured), betting table (cooldown only).
+
+**Benefit**:
+- Zero maintenance overhead
+- Important ideas resurface naturally
+- Mental clarity (not drowning in todos)
+- Time spent building, not planning
+
+**Quantified**:
+- Traditional: 2-4 hours/week backlog grooming
+- Shape Up: 0 hours (ideas captured in 5 min)
+- Savings: ~100 hours/year
+
+### Captured Learnings
+
+**Problem**: Make same mistakes repeatedly.
+
+**Solution**: Discarded sessions recorded in cycle file.
+
+**Benefit**:
+- "Tried state machine, too complex" preserved
+- Future cycles reference past learnings
+- Compound learning over time
+- New contributors see history
+
+**Example**:
+```markdown
+## Session Metrics
+**Recent sessions**:
+1. 20251104-domain-databasename: 38 min - kept
+2. 20251104-domain-state-machine: 42 min - discarded (too complex)
+3. 20251105-domain-procedural: 36 min - kept (simpler, works)
+```
+
+**Learning**: Procedural > state machine for this domain.
+
+### Forced Recovery Time
+
+**Problem**: No breaks between projects, burn out.
+
+**Solution**: 2-week cooldown after every cycle.
+
+**Benefit**:
+- Mental recovery (prevent burnout)
+- Reflection time (what worked? what didn't?)
+- Shaping time (next cycle prepared)
+- Bug fixes (polish shipped work)
+
+**Cooldown activities**:
+- Week 1: Bug fixes, recovery
+- Week 2: Shaping, betting table
+
+---
+
+## 9. Trade-offs: What You Give Up
+
+### No Long-Term Roadmap
+
+**What you lose**: 12-month product roadmap with committed features.
+
+**Why**: Shape Up has no backlogs, betting table decides cycle-by-cycle.
+
+**Impact**:
+- Can't promise features 6 months out
+- Stakeholders may want roadmap
+- Investors may expect predictability
+
+**Mitigation**:
+- Share pitches (possible futures, not commitments)
+- Explain appetite-driven planning
+- Demonstrate consistent shipping cadence
+
+**For solo developer**: Usually not an issue (no stakeholders).
+
+### No Story Point Estimates
+
+**What you lose**: Velocity charts, sprint burndowns, capacity planning.
+
+**Why**: Shape Up uses appetite (time budget), not estimates.
+
+**Impact**:
+- Can't say "this will take 13 story points"
+- Can't compare velocity across cycles
+- Traditional metrics unavailable
+
+**Mitigation**:
+- Use session metrics instead (hours/week)
+- Hill charts show progress
+- Circuit breaker enforces deadline
+
+**For solo developer**: Story points were never accurate anyway.
+
+### No Daily Standup Coordination
+
+**What you lose**: Daily sync, blocker removal, team coordination.
+
+**Why**: Shape Up designed for teams, session management for solo.
+
+**Impact**:
+- Solo developer: No impact (no team to coordinate)
+- Team: Would need to add standups (not in Shape Up)
+
+**Mitigation**:
+- Weekly hill chart updates (async coordination)
+- Slack/Discord for blockers (async)
+
+**For solo developer**: Benefit, not trade-off (no meeting overhead).
+
+### Hard Circuit Breaker May Feel Harsh
+
+**What you lose**: Flexibility to extend when "almost done".
+
+**Why**: Circuit breaker prevents sunk cost fallacy.
+
+**Impact**:
+- Kill projects that are 80% complete
+- Feel like "giving up"
+- Emotional difficulty (attachment to work)
+
+**Mitigation**:
+- Scope hammer earlier (week 5)
+- Ship partial (80% complete can ship)
+- Rare extension (90% complete, downhill)
+
+**For solo developer**: Discipline is needed, but valuable.
+
+### Session Branches Create Churn
+
+**What you lose**: Every session commits directly to main.
+
+**Why**: Session branches enable keep/discard decisions.
+
+**Impact**:
+- More git operations (branch, merge, delete)
+- Squash merges lose detailed history
+- Main branch less granular
+
+**Mitigation**:
+- Squash preserves session metadata
+- Detailed commits visible in session branch (before merge)
+- Git reflog preserves everything
+
+**For solo developer**: Small price for psychological safety.
+
+### No Feature Backlogs = Ideas Die
+
+**What you lose**: Curated backlog of "future work".
+
+**Why**: Shape Up principle: let ideas die.
+
+**Impact**:
+- Good ideas may be forgotten
+- No prioritized queue
+- May feel disorganized
+
+**Mitigation**:
+- Important ideas resurface naturally
+- IDEAS.md captures rough notes
+- Betting table reviews pitches (shaped ideas)
+
+**For solo developer**: Less overwhelm, more focus.
+
+### Cooldown May Feel Unproductive
+
+**What you lose**: Continuous feature development.
+
+**Why**: 2-week cooldown for recovery and shaping.
+
+**Impact**:
+- 25% of time not building features (2 weeks / 8 weeks)
+- May feel "wasted" time
+- Pressure to skip cooldown
+
+**Mitigation**:
+- Bug fixes during cooldown (productive)
+- Shaping prevents bad cycles (investment)
+- Recovery prevents burnout (essential)
+
+**For solo developer**: Cooldown is strategic, not wasted.
+
+### Auto-Pause May Interrupt Flow
+
+**What you lose**: Uninterrupted 3+ hour deep work sessions.
+
+**Why**: Health-first protocol enforces breaks.
+
+**Impact**:
+- Hard timeout at 90 min (forced break)
+- May feel interrupted mid-thought
+- Flow state disrupted
+
+**Mitigation**:
+- 40 min, 60 min reminders (optional, can continue)
+- 90 min rare if 40 min sessions normal
+- Breaks actually improve quality (research-backed)
+
+**For solo developer**: Short-term interruption, long-term sustainability.
+
+---
+
+## 10. References
+
+### Shape Up (Basecamp)
+
+**Book**: [Shape Up: Stop Running in Circles and Ship Work that Matters](https://basecamp.com/shapeup)
+- **Author**: Ryan Singer (Basecamp)
+- **Format**: Free online book
+- **Topics**: Shaping, betting, building, cycles, scopes, hill charts
+
+**Key chapters**:
+1. **Principles of Shaping** - Fixed time, variable scope, appetite
+2. **Betting Table** - Cooldown, decision-making, no backlogs
+3. **Hill Charts** - Uphill (figuring out) vs downhill (executing)
+4. **Scope Hammering** - Cutting features, good enough > perfect
+5. **Circuit Breaker** - Hard deadline, ship or kill
+
+**Why read it**: Foundational understanding of Shape Up methodology.
+
+### Session Management Inspiration
+
+**Pomodoro Technique**:
+- 25-minute work sessions + 5-minute breaks
+- Inspired 40-minute session target
+- Research shows sustained focus ~40-50 min optimal
+
+**Timeboxing Research**:
+- Parkinson's Law: Work expands to fill time available
+- Fixed time forces prioritization
+- Deadlines improve decision quality
+
+**Health & Productivity**:
+- Ultradian rhythms: 90-120 min cycles, breaks needed
+- Cognitive fatigue: Quality declines after 60 min
+- Recovery: 10-minute breaks restore performance
+
+### Domain-Driven Design (DDD)
+
+**Book**: Domain-Driven Design by Eric Evans
+
+**Relevance to methodology**:
+- Ubiquitous language applies to process (not just domain)
+- Bounded contexts: Separate planning from execution
+- Aggregates: Cycle as aggregate (scopes, sessions, metrics)
+
+**Integration**:
+- Cycle files use DDD language (scope, session, circuit breaker)
+- Git commits use ubiquitous language
+- Methodology is "domain" of development process
+
+### Clean Architecture
+
+**Book**: Clean Architecture by Robert C. Martin
+
+**Relevance to methodology**:
+- Separation of concerns: Planning layer / execution layer
+- Dependency rule: Sessions depend on cycles (not reverse)
+- Testability: Session metrics validate process
+
+### Testing Philosophy
+
+**Test-Driven Development (TDD)**:
+- Red-Green-Refactor cycle
+- Fits 40-minute sessions perfectly
+- Fast feedback (like keep/discard)
+
+**Property-Based Testing**:
+- Explore solution space (like session branches)
+- Failed properties = learnings (like discarded sessions)
+
+### Agile Manifesto (Respectful Departure)
+
+**What Shape Up keeps**:
+- Individuals and interactions (solo: internal dialogue)
+- Working software (ship partial)
+- Responding to change (scope hammer)
+
+**What Shape Up changes**:
+- No backlogs (vs continuous refinement)
+- No estimates (vs story points)
+- Hard deadline (vs sustainable pace)
+
+**Why**: Agile optimized for teams, Shape Up works for solo.
+
+### Related Methodologies
+
+**Getting Things Done (GTD)**:
+- Capture ideas (IDEAS.md)
+- Weekly review (hill chart updates)
+- Projects with next actions (cycle file)
+
+**Kanban**:
+- WIP limits (one active cycle)
+- Visual board (hill chart)
+- Continuous improvement (cooldown reflection)
+
+**Scrum**:
+- Time boxes (cycles)
+- Retrospectives (cooldown reflection)
+- Sprint planning (betting table)
+
+**Note**: Shape Up is NOT a blend of these. It's a distinct methodology with overlap.
+
+---
+
+## Conclusion
+
+This methodology combines:
+- **Shape Up** for planning (fixed time, variable scope)
+- **Session Management** for execution (automatic tracking, health-first)
+
+**Integration points**:
+- Cycle files track session metrics
+- Session commits reference cycle context
+- Hill charts update from session data
+- Circuit breaker informed by session velocity
+
+**Core benefits**:
+- Predictable shipping (circuit breaker)
+- Sustainable pace (auto-pause, breaks)
+- Honest velocity (automatic tracking)
+- Fast feedback (6-week cycles)
+- Psychological safety (session branches)
+
+**Trade-offs**:
+- No long-term roadmap
+- No story point estimates
+- Hard circuit breaker (may feel harsh)
+- Cooldown may feel unproductive
+
+**For solo developers**: This methodology provides structure without overhead, discipline without burnout, and shipping without compromising health.
+
+---
+
+## Next Steps
+
+**For new contributors**:
+1. Read this explanation (understanding WHY)
+2. Follow [First Cycle Walkthrough](../tutorial/first-cycle-walkthrough.md) (hands-on learning)
+3. Reference [How-To Guides](../how-to/) (specific tasks)
+4. Look up syntax in [Reference](../reference/) (quick lookup)
+
+**For current cycle**:
+- See active cycle in `plans/cycles/cycle-NN.md`
+- Run sessions: `/session start <task>`
+- Update hill chart: Friday afternoons
+- Track progress: Session metrics in cycle file
+
+**For shaping next cycle**:
+- Capture ideas in `IDEAS.md`
+- Shape pitches in cooldown
+- Betting table decision
+- Start next cycle
+
+---
+
+**Document Status**: Complete (sections 1-10)
+**Last Updated**: 2025-11-04
+**Related**: [How-To Guides](../how-to/), [Reference](../reference/), [Tutorial](../tutorial/)
